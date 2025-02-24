@@ -25,6 +25,9 @@ class GameState:
                     self.blockers == other.blockers)
         return False
 
+    def __hash__(self):
+        return hash((frozenset(self.tiles.items()), tuple(self.blanks)))
+
     def __str__(self):
         board = {}
         for pos, color in self.tiles.items():
