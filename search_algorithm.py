@@ -34,9 +34,6 @@ class BFS(SearchAlgorithm):
             current_state, path = queue.pop(0)
             self.metrics_collector.track_state()
 
-            print(f"Current State:\n{current_state}")
-            print(f"Current Path: {path}")
-
             if current_state.is_solved():
                 self.solution_moves = len(path)
                 if self.solution_moves == optimal_moves:
@@ -52,8 +49,6 @@ class BFS(SearchAlgorithm):
                     if next_state_hash not in visited_hashes:
                         visited_hashes.add(next_state_hash)
                         queue.append((next_state, path + [type(move).__name__]))
-                        print(f"Applying move: {type(move).__name__}")
-                        print(f"Next State:\n{next_state}")
 
         self.metrics_collector.stop()
         if self.best_suboptimal_path:
