@@ -34,7 +34,7 @@ def main():
     optimal_moves = level.optimal_moves
 
     bfs = search_algorithm.BFS(deepcopy(initial_state))
-    solution_path, solution_moves = bfs.solve(optimal_moves)
+    solution_path, solution_moves = bfs.solve()
 
     print("BFS:")
     if solution_path:

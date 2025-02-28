@@ -10,21 +10,13 @@ class SearchAlgorithm(ABC):
         self.initial_state = initial_state
         self.heuristic = heuristic
         self.metrics_collector = MetricsCollector()
-        self.solution_moves = None
-        self.best_suboptimal_path = None
-        self.best_suboptimal_moves = 2**31 - 1
 
     @abstractmethod
-    def solve(self, optimal_moves: int) -> Tuple[List[str], int]:
+    def solve(self) -> Tuple[List[str], int]:
         pass
 
-    def update_suboptimal_path(self, path: List[str], moves: int):
-        if moves < self.best_suboptimal_moves:
-            self.best_suboptimal_path = path
-            self.best_suboptimal_moves = moves
-
 class BFS(SearchAlgorithm):
-    def solve(self, optimal_moves: int) -> Tuple[List[str], int]:
+    def solve(self) -> Tuple[List[str], int]:
         self.metrics_collector.start()
         queue = [(self.initial_state, [])]
         visited_hashes = set()
@@ -35,12 +27,8 @@ class BFS(SearchAlgorithm):
             self.metrics_collector.track_state()
 
             if current_state.is_solved():
-                self.solution_moves = len(path)
-                if self.solution_moves == optimal_moves:
-                    self.metrics_collector.stop()
-                    return path, self.solution_moves
-                else:
-                    self.update_suboptimal_path(path, self.solution_moves)
+                self.metrics_collector.stop()
+                return path, len(path)
 
             for move in [SlideLeft(), SlideRight(), SlideUp(), SlideDown()]:
                 next_state = move.apply(current_state)
@@ -51,9 +39,4 @@ class BFS(SearchAlgorithm):
                         queue.append((next_state, path + [type(move).__name__]))
 
         self.metrics_collector.stop()
-        if self.best_suboptimal_path:
-            self.solution_moves = self.best_suboptimal_moves
-            return self.best_suboptimal_path, self.solution_moves
-        else:
-            self.solution_moves = None
-            return None, None
+        return None, None
