@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from game_state import GameState
-from collections import defaultdict
 from itertools import permutations
 
 
@@ -154,9 +153,9 @@ class BlockerMoves:
             blocker_in_tile_row = False
             blocker_in_target_row = False
             for blocker in blockers:
-                if blocker[0] == tile_pos[0] and min_col <= blocker[0] <= max_col:
+                if blocker[1] == tile_pos[1] and min_col <= blocker[0] <= max_col:
                     blocker_in_tile_row = True
-                if blocker[0] == target_pos[0] and min_col <= blocker[0] <= max_col:
+                if blocker[1] == target_pos[1] and min_col <= blocker[0] <= max_col:
                     blocker_in_target_row = True
             if blocker_in_tile_row and blocker_in_target_row:
                 return 3
