@@ -67,7 +67,6 @@ class PlayGame():
         return self.bfs()
 
     def bfs(self):
-
             problem = deepcopy(self.initial_state)
             queue = [(problem, [])]
             visited_hashes = set()

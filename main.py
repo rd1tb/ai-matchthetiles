@@ -79,8 +79,8 @@ def main():
     optimal_moves = level.optimal_moves
     print(initial_state.is_solved())
 
-    #play_game(initial_state)
-    use_bfs(initial_state, optimal_moves)
+    play_game(initial_state)
+    #use_bfs(initial_state, optimal_moves)
 
 
 

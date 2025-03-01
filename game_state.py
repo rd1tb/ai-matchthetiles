@@ -40,6 +40,12 @@ class GameState:
         for pos in self.blockers:
             board[pos] = "##"
 
+        for pos, color in self.tiles.items():
+            if pos in self.targets:
+                print(self.targets[pos])
+                pos_color = self.targets[pos]
+                board[pos] = f"{pos_color[0].upper()}{color[0].lower()}"
+
         output = ""
         for y in range(self.size):
             row = ""
