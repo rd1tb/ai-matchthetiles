@@ -3,14 +3,21 @@ from copy import deepcopy
 
 class GameState:
     def __init__(self, tiles: Dict[Tuple[int, int], str], targets: Dict[Tuple[int, int], str],
-                 blanks: List[Tuple[int, int]], blockers: List[Tuple[int, int]], size: int):
+                 blanks: List[Tuple[int, int]], blockers: List[Tuple[int, int]], size: int, move_history=False):
         self.tiles = tiles
         self.targets = targets
         self.blanks = blanks
         self.blockers = blockers
         self.size = size
-        self.move_history = []
+        #self.move_history = []
         self.running = True
+        if move_history:
+            self.move_history = []
+
+
+        #self.preferential_position = {"green":(3, 0), "purple": (3, 1)}
+        #self.preferential_position = {"green":(3, 0), "purple": (2, 1)}
+        self.preferential_position = {"green":(0, 3), "purple": (4, 5), "red": (5, 3)}
 
     def is_solved(self) -> bool:
         for tile_pos, tile_color in self.tiles.items():
@@ -53,6 +60,9 @@ class GameState:
                 row += board.get((x, y), ".") + " "
             output += row + "\n"
         return output
+
+    def __len__(self):
+        return 4
 
 
 

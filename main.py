@@ -3,7 +3,7 @@ from level_manager import LevelManager, Level
 from game_state import GameState
 from copy import deepcopy
 from play_game import PlayGame
-
+from heuristic import ManhattanDistance
 
 def play_game(initial_state):
     PlayGame(initial_state).play_game()
@@ -24,6 +24,8 @@ def use_bfs(initial_state, optimal_moves):
 
     return None
 
+def use_Astar(initial_state, optimal_moves):
+    search_algorithm.Astar(deepcopy(initial_state)).solve('manhattan')
 
 def main():
     level2= Level(
@@ -32,7 +34,8 @@ def main():
             targets={(3, 0): "green", (3, 1): "purple"},
             blanks=[(0, 0), (0, 1), (0, 2), (0, 3), (1, 0), (1, 2), (1, 3), (2, 2), (3, 2)],
             blockers=[(1, 1), (2, 0), (2, 3)],
-            size = 4
+            size = 4,
+            move_history=True
         ),
         2
     )   
@@ -43,7 +46,8 @@ def main():
             targets={(3, 0): "green", (2, 1): "purple"},
             blanks=[(0, 0), (0, 1), (0, 3), (1, 0), (1, 1), (1, 2), (1, 3), (2, 0), (2, 2), (2, 3)],
             blockers=[(3, 1), (3, 2)],
-            size = 4
+            size = 4,
+            move_history=True
         ),
         3
     )
@@ -64,7 +68,8 @@ def main():
 
                       (0, 4), (3, 4), (5, 4),
                       (1, 5),  ],
-            size = 6
+            size = 6,
+            move_history=True
         ),
         11
     )
@@ -77,11 +82,11 @@ def main():
     level = level_manager.get_level(level_index)
     initial_state = level.initial_state
     optimal_moves = level.optimal_moves
-    print(initial_state.is_solved())
+    print(initial_state)
 
-    play_game(initial_state)
+    #play_game(initial_state)
     #use_bfs(initial_state, optimal_moves)
-
+    use_Astar(initial_state, optimal_moves)
 
 
 

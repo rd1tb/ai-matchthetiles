@@ -12,8 +12,7 @@ class Move(ABC):
             new_state.move_history = state.move_history
             value = func(self, new_state)
             if value:
-                new_state.move_history.append(type(self).__name__)
-                return new_state
+                 return new_state
             return None
         return wrapper
 
@@ -43,6 +42,8 @@ class SlideLeft(Move):
         if moved:
             state.tiles = new_tiles
             state.blanks = new_blanks
+            state.move_history = state.move_history + [self]
+
             return True
         else:
             return False
@@ -73,6 +74,8 @@ class SlideRight(Move):
         if moved:
             state.tiles = new_tiles
             state.blanks = new_blanks
+            state.move_history = state.move_history + [self]
+
             return True
         else:
             return False
@@ -103,6 +106,7 @@ class SlideUp(Move):
         if moved:
             state.tiles = new_tiles
             state.blanks = new_blanks
+            state.move_history = state.move_history + [self]
             return True
         else:
             return False
@@ -133,6 +137,8 @@ class SlideDown(Move):
         if moved:
             state.tiles = new_tiles
             state.blanks = new_blanks
+            state.move_history = state.move_history + [self]
+
             return True
         else:
             return False
