@@ -10,6 +10,7 @@ class GameState:
         self.blockers = blockers
         self.size = size
         self.move_history = []
+        self.running = True
 
     def is_solved(self) -> bool:
         for tile_pos, tile_color in self.tiles.items():
@@ -31,13 +32,13 @@ class GameState:
     def __str__(self):
         board = {}
         for pos, color in self.tiles.items():
-            board[pos] = f"{color[0]}"
+            board[pos] = f"{color[0]} "
         for pos, color in self.targets.items():
-            board[pos] = f"{color[0].upper()}"
+            board[pos] = f"{color[0].upper()} "
         for pos in self.blanks:
-            board[pos] = "*"
+            board[pos] = "__"
         for pos in self.blockers:
-            board[pos] = "#"
+            board[pos] = "##"
 
         output = ""
         for y in range(self.size):
@@ -46,3 +47,7 @@ class GameState:
                 row += board.get((x, y), ".") + " "
             output += row + "\n"
         return output
+
+
+
+
