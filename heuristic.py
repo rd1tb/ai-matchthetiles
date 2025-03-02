@@ -16,10 +16,10 @@ class MinMovesHeuristic:
         targets = [pos for pos, col in state.targets.items() if col == color]
 
         if len(tiles) > self.MAX_TILES_PER_COLOR:
-            return self._simple_calculation(tiles, targets, getattr(state, 'blockers', []))
-        return self._permutational_calculation(tiles, targets, getattr(state, 'blockers', []))
+            return self._simple_calculation(tiles, targets, getattr(state, 'blockers', []), state.tiles)
+        return self._permutational_calculation(tiles, targets, getattr(state, 'blockers', []), state.tiles)
 
-    def _simple_calculation(self, tiles: list, targets: list, blockers: list = None) -> int:
+    def _simple_calculation(self, tiles: list, targets: list, blockers: list = None, tiles_dict: dict = None) -> int:
         used_targets = set()
         result = 0
 
@@ -29,7 +29,7 @@ class MinMovesHeuristic:
             
             for target_pos in targets:
                 if target_pos not in used_targets:
-                    moves = self._calculate_moves(tile_pos, target_pos, blockers)
+                    moves = self._calculate_moves(tile_pos, target_pos, blockers, tiles_dict)
                     if moves < min_moves:
                         min_moves = moves
                         best_target = target_pos
@@ -40,20 +40,20 @@ class MinMovesHeuristic:
             
         return result
 
-    def _permutational_calculation(self, tiles: list, targets: list, blockers: list = None) -> int:
+    def _permutational_calculation(self, tiles: list, targets: list, blockers: list = None, tiles_dict: dict = None) -> int:
         best_result = self._init_best(len(tiles))
         
         for target_arrangement in permutations(targets):
             current = 0
             for tile_pos, target_pos in zip(tiles, target_arrangement):
-                moves = self._calculate_moves(tile_pos, target_pos, blockers)
+                moves = self._calculate_moves(tile_pos, target_pos, blockers, tiles_dict)
                 current = self._update_partial(current, moves)
             best_result = min(best_result, current)
             
         return best_result
 
     @abstractmethod
-    def _calculate_moves(self, tile_pos: tuple, target_pos: tuple, blockers: list = None) -> int:
+    def _calculate_moves(self, tile_pos: tuple, target_pos: tuple, blockers: list = None, tiles_dict: dict = None) -> int:
         pass
 
     @abstractmethod
@@ -97,7 +97,7 @@ class MaxMinMoves(MinMovesHeuristic):
         return max(results)
 
 class TeleportMoves:
-    def _calculate_moves(self, tile_pos: tuple, target_pos: tuple, blockers: list = None) -> int:
+    def _calculate_moves(self, tile_pos: tuple, target_pos: tuple, blockers: list = None, color: str = None) -> int:
         if tile_pos == target_pos:
             return 0
         if tile_pos[0] == target_pos[0] or tile_pos[1] == target_pos[1]:
@@ -113,7 +113,7 @@ class MaxMinMovesTeleport(TeleportMoves, MaxMinMoves):
     pass
 
 class BlockerMoves:
-    def _calculate_moves(self, tile_pos: tuple, target_pos: tuple, blockers: list) -> int:
+    def _calculate_moves(self, tile_pos: tuple, target_pos: tuple, blockers: list, tiles_dict: dict = None) -> int:
         if tile_pos == target_pos:
             return 0
             
@@ -169,4 +169,19 @@ class SumMinMovesBlockers(BlockerMoves, SumMinMoves):
 
 class MaxMinMovesBlockers(BlockerMoves, MaxMinMoves):
     """Calculates maximum of minimum moves needed considering blockers."""
+    pass
+
+class ConflictMoves(BlockerMoves):
+    def _calculate_moves(self, tile_pos: tuple, target_pos: tuple, blockers: list, tiles_dict: dict) -> int:
+        tile_color = tiles_dict[tile_pos]
+        other_tiles = [pos for pos, col in tiles_dict.items() 
+                      if col != tile_color and pos != tile_pos]
+        return super()._calculate_moves(tile_pos, target_pos, other_tiles)
+
+class SumMinMovesConflicts(ConflictMoves, SumMinMoves):
+    """Calculates sum of minimum moves needed considering other color tiles as blockers."""
+    pass
+
+class MaxMinMovesConflicts(ConflictMoves, MaxMinMoves):
+    """Calculates maximum of minimum moves needed considering other color tiles as blockers."""
     pass
