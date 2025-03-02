@@ -16,8 +16,8 @@ class MinMovesHeuristic:
         targets = [pos for pos, col in state.targets.items() if col == color]
 
         if len(tiles) > self.MAX_TILES_PER_COLOR:
-            return self._simple_calculation(tiles, targets, getattr(state, 'blockers', []), state.tiles)
-        return self._permutational_calculation(tiles, targets, getattr(state, 'blockers', []), state.tiles)
+            return self._simple_calculation(tiles, targets, state.blockers, state.tiles)
+        return self._permutational_calculation(tiles, targets, state.blockers, state.tiles)
 
     def _simple_calculation(self, tiles: list, targets: list, blockers: list = None, tiles_dict: dict = None) -> int:
         used_targets = set()
@@ -77,7 +77,7 @@ class MinMovesHeuristic:
         pass
 
 class SumMinMoves(MinMovesHeuristic):
-    def _init_best(self, len_tiles) -> int:
+    def _init_best(self, len_tiles: int) -> int:
         return 3 * len_tiles + 1
 
     def _update_partial(self, current: int, new: int) -> int:
@@ -87,7 +87,7 @@ class SumMinMoves(MinMovesHeuristic):
         return sum(results)
 
 class MaxMinMoves(MinMovesHeuristic):
-    def _init_best(self, len_tiles=None) -> int:
+    def _init_best(self, len_tiles: int = None) -> int:
         return 4
 
     def _update_partial(self, current: int, new: int) -> int:
@@ -171,12 +171,32 @@ class MaxMinMovesBlockers(BlockerMoves, MaxMinMoves):
     """Calculates maximum of minimum moves needed considering blockers."""
     pass
 
-class ConflictMoves(BlockerMoves):
+class ConflictMoves:
     def _calculate_moves(self, tile_pos: tuple, target_pos: tuple, blockers: list, tiles_dict: dict) -> int:
         tile_color = tiles_dict[tile_pos]
         other_tiles = [pos for pos, col in tiles_dict.items() 
                       if col != tile_color and pos != tile_pos]
-        return super()._calculate_moves(tile_pos, target_pos, other_tiles)
+
+        if tile_pos == target_pos:
+            return 0
+
+        if tile_pos[0] == target_pos[0]:  # Same column
+            min_row = min(tile_pos[1], target_pos[1])
+            max_row = max(tile_pos[1], target_pos[1])
+            for other_tile in other_tiles:
+                if other_tile[0] == tile_pos[0] and min_row <= other_tile[1] <= max_row:
+                    return 2
+            return 1
+
+        if tile_pos[1] == target_pos[1]:  # Same row
+            min_col = min(tile_pos[0], target_pos[0])
+            max_col = max(tile_pos[0], target_pos[0])
+            for other_tile in other_tiles:
+                if other_tile[1] == tile_pos[1] and min_col <= other_tile[0] <= max_col:
+                    return 2
+            return 1
+
+        return 2
 
 class SumMinMovesConflicts(ConflictMoves, SumMinMoves):
     """Calculates sum of minimum moves needed considering other color tiles as blockers."""
