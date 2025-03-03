@@ -1,13 +1,13 @@
 from abc import ABC, abstractmethod
 from game_state import GameState
-import heuristic
+from heuristic import Heuristic
 from move import SlideDown, SlideLeft, SlideRight, SlideUp
 from metrics_collector import MetricsCollector
-from typing import Tuple, List, Dict, Set
+from typing import Tuple, List, Set
 import heapq
 
 class SearchAlgorithm(ABC):
-    def __init__(self, initial_state: GameState, heuristic_func: heuristic.MinMovesHeuristic = None):
+    def __init__(self, initial_state: GameState, heuristic_func: Heuristic = None):
         self.initial_state = initial_state
         self.heuristic = heuristic_func
         self.metrics_collector = MetricsCollector()

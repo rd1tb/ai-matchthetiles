@@ -2,8 +2,12 @@ from abc import ABC, abstractmethod
 from game_state import GameState
 from itertools import permutations
 
+class Heuristic(ABC):
+    @abstractmethod
+    def evaluate(self, state: GameState) -> int:
+        pass
 
-class MinMovesHeuristic:
+class MinMovesHeuristic(Heuristic):
     """Base class for heuristics that calculate moves between tiles and targets."""
     MAX_TILES_PER_COLOR = 6
 
