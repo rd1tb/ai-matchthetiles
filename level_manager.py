@@ -1,6 +1,10 @@
 import random
 from game_state import GameState
 from typing import Dict, List
+from search_algorithm import BFS
+import os
+import re
+from copy import deepcopy
 
 class Level:
     def __init__(self, initial_state: GameState, optimal_moves: int):
@@ -294,6 +298,8 @@ class LevelManager:
         self.levels = combined_levels
 
     def get_level(self, level_index: int) -> Level:
+        if level_index not in self.levels:
+            return None
         level_list = self.levels[level_index]
         return random.choice(level_list)
 
@@ -303,3 +309,72 @@ class LevelManager:
                 self.levels[level_index].append(level)
         else:
             self.levels[level_index] = [level]
+
+    def _check_if_level_is_solvable(self, level: Level) -> Level:
+        tile_colors = {}
+        target_colors = {}
+        for color in level.initial_state.tiles.values():
+            tile_colors[color] = tile_colors.get(color, 0) + 1
+        for color in level.initial_state.targets.values():
+            target_colors[color] = target_colors.get(color, 0) + 1
+
+        if tile_colors != target_colors:
+            print(f"Error! Level is not solvable, the number of tiles and targets do not match.")
+            return None
+
+        bfs = BFS(deepcopy(level.initial_state))
+        _, optimal_moves = bfs.solve()
+        if optimal_moves is None:
+            print(f"Error! Level is not solvable, no solution exists.")
+            return None
+
+        if level.optimal_moves is not None and level.optimal_moves != optimal_moves:
+            print(f"Warning! Level is not solvable in {level.optimal_moves} moves, updating the optimal number of moves to {optimal_moves}.")
+            return Level(level.initial_state, optimal_moves)
+
+        return level
+
+    def load_level_from_file(self, file_path: str):
+        if not os.path.exists(file_path):
+            print(f"Error! Did not manage to load a level from {file_path}: file does not exist.")
+            return
+
+        file_name = os.path.splitext(os.path.basename(file_path))[0]
+        match = re.search(r'\d+', file_name)
+        level_index = int(match.group()) if match else 0
+
+        with open(file_path, 'r') as file:
+            lines = file.readlines()
+
+        tiles = {}
+        targets = {}
+        blanks = []
+        blockers = []
+        size = len(lines[0].strip())
+        for i, line in enumerate(lines[:size]):
+            line = line.strip()
+            for j, cell in enumerate(line):
+                if cell == '#':
+                    blockers.append((j, i))
+                elif cell == '*':
+                    blanks.append((j, i))
+                elif cell.isupper():
+                    tiles[(j, i)] = cell.lower()
+                else:
+                    targets[(j, i)] = cell.lower()
+
+        if len(lines) > size:
+            try:
+                read_optimal_moves = int(lines[size].strip())
+            except ValueError:
+                read_optimal_moves = None
+        else:
+            read_optimal_moves = None
+
+        game_state = GameState(tiles=tiles, targets=targets, blanks=blanks, blockers=blockers, size=size)
+        level = Level(initial_state=game_state, optimal_moves=read_optimal_moves)
+
+        if not self._check_if_level_is_solvable(level):
+            return
+
+        self.add_level(level_index, level)
