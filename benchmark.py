@@ -1,15 +1,21 @@
 import search_algorithm
-from level_manager import LevelManager, Level
-from game_state import GameState
+from level_manager import LevelManager
 from copy import deepcopy
 import heuristic
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
 import seaborn as sns
+import argparse
 from main import run_algorithm
 
-def run_benchmark():
+def parse_args():
+    parser = argparse.ArgumentParser(description='Run benchmarks for Match The Tiles')
+    parser.add_argument('--plot', action='store_true', 
+                       help='Generate plots from benchmark results')
+    return parser.parse_args()
+
+def run_benchmark(args=None):
     level_manager = LevelManager()
     
     # Define algorithms and heuristics
@@ -56,8 +62,9 @@ def run_benchmark():
     df = pd.DataFrame(all_metrics)
     df.to_csv("results/benchmark_results.csv", index=False)
     
-    # Generate plots
-    generate_plots(df)
+    if args.plot:
+        # Generate plots
+        generate_plots(df)
     
 def generate_plots(df):
     # Time comparison
@@ -125,4 +132,5 @@ def generate_plots(df):
     print("Detailed benchmark plots saved to the 'results' directory")
 
 if __name__ == "__main__":
-    run_benchmark() 
+    args = parse_args()
+    run_benchmark(args)
