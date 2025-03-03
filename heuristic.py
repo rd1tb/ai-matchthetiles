@@ -71,11 +71,6 @@ class MinMovesHeuristic(Heuristic):
         pass
 
     @abstractmethod
-    def _update_best(self, current: int, new: int) -> int:
-        """Update best result with new value."""
-        pass
-
-    @abstractmethod
     def _aggregate_results(self, results: list) -> int:
         """Aggregate results from all color groups."""
         pass
