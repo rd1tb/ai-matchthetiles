@@ -20,18 +20,12 @@ def run_algorithm(algorithm_name, algorithm_instance, level_name, optimal_moves)
     
     algorithm_instance.metrics_collector.print_metrics(solution_moves, optimal_moves)
     
-    # Return metrics for comparison
-    metrics = {
+    metrics = algorithm_instance.metrics_collector.get_metrics(solution_moves, optimal_moves)
+    metrics.update({
         "algorithm": algorithm_name,
-        "level": level_name,
-        "time": algorithm_instance.metrics_collector.end_time - algorithm_instance.metrics_collector.start_time,
-        "memory": algorithm_instance.metrics_collector.max_memory,
-        "states": algorithm_instance.metrics_collector.states_generated,
-        "solution_moves": solution_moves,
-        "optimal_moves": optimal_moves,
-        "difference": solution_moves - optimal_moves if solution_moves else None
-    }
-    
+        "level": level_name
+    })
+
     return metrics
 
 def plot_metrics(metrics_list):

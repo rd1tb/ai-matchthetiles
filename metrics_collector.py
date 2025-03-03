@@ -21,16 +21,18 @@ class MetricsCollector:
         current_memory, _ = tracemalloc.get_traced_memory()
         self.max_memory = max(self.max_memory, current_memory)
 
-    def _get_metrics(self, solution_moves, optimal_moves):
+    def get_metrics(self, solution_moves, optimal_moves):
         return {
             "time": self.end_time - self.start_time,
             "memory": self.max_memory,
             "states_generated": self.states_generated,
+            "solution_moves": solution_moves,
+            "optimal_moves": optimal_moves,
             "difference_from_optimal": solution_moves - optimal_moves if solution_moves else None
         }
 
     def print_metrics(self, solution_moves, optimal_moves):
-        metrics = self._get_metrics(solution_moves, optimal_moves)
+        metrics = self.get_metrics(solution_moves, optimal_moves)
         time_seconds = metrics["time"]
         if time_seconds < 1:
             time_str = f"{time_seconds * 1000:.2f} milliseconds"
