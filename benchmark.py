@@ -4,52 +4,13 @@ from game_state import GameState
 from copy import deepcopy
 import heuristic
 import matplotlib.pyplot as plt
-import numpy as np
-import time
 import os
 import pandas as pd
 import seaborn as sns
 from main import run_algorithm
 
 def run_benchmark():
-    # Define levels
-    level2 = Level(
-        GameState(
-            tiles={(2, 1): "green", (3, 3): "purple"},
-            targets={(3, 0): "green", (3, 1): "purple"},
-            blanks=[(0, 0), (0, 1), (0, 2), (0, 3), (1, 0), (1, 2), (1, 3), (2, 2), (3, 2)],
-            blockers=[(1, 1), (2, 0), (2, 3)],
-            size = 4
-        ),
-        2
-    )   
-
-    level3 = Level(
-        GameState(
-            tiles={(0, 2): "green", (3, 3): "purple"},
-            targets={(3, 0): "green", (2, 1): "purple"},
-            blanks=[(0, 0), (0, 1), (0, 3), (1, 0), (1, 1), (1, 2), (1, 3), (2, 0), (2, 2), (2, 3)],
-            blockers=[(3, 1), (3, 2)],
-            size = 4
-        ),
-        3
-    )
-
-    # Create a more challenging level
-    level4 = Level(
-        GameState(
-            tiles={(0, 0): "red", (0, 4): "blue", (4, 0): "green", (4, 4): "yellow"},
-            targets={(2, 2): "red", (1, 2): "blue", (3, 2): "green", (2, 3): "yellow"},
-            blanks=[(0, 1), (0, 2), (0, 3), (1, 0), (1, 1), (1, 3), (1, 4), 
-                   (2, 0), (2, 1), (2, 4), (3, 0), (3, 1), (3, 3), (3, 4), 
-                   (4, 1), (4, 2), (4, 3)],
-            blockers=[(3, 2), (2, 3)],
-            size = 5
-        ),
-        5
-    )
-
-    level_manager = LevelManager({2: level2, 3: level3, 4: level4})
+    level_manager = LevelManager()
     
     # Define algorithms and heuristics
     algorithms = [
