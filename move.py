@@ -136,3 +136,6 @@ class SlideDown(Move):
             return True
         else:
             return False
+
+
+POSSIBLE_MOVES = [SlideLeft(), SlideRight(), SlideUp(), SlideDown()]

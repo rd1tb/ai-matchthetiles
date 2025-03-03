@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from game_state import GameState
 from heuristic import Heuristic
-from move import SlideDown, SlideLeft, SlideRight, SlideUp
+from move import POSSIBLE_MOVES
 from metrics_collector import MetricsCollector
 from typing import Tuple, List, Set
 import heapq
@@ -31,7 +31,7 @@ class BFS(SearchAlgorithm):
                 self.metrics_collector.stop()
                 return path, len(path)
 
-            for move in [SlideLeft(), SlideRight(), SlideUp(), SlideDown()]:
+            for move in POSSIBLE_MOVES:
                 next_state = move.apply(current_state)
                 if next_state:
                     next_state_hash = hash(next_state)
@@ -80,7 +80,7 @@ class IDS(SearchAlgorithm):
             
         visited_hashes.add(state_hash)
         
-        for move in [SlideLeft(), SlideRight(), SlideUp(), SlideDown()]:
+        for move in POSSIBLE_MOVES:
             next_state = move.apply(state)
             if next_state:
                 new_path = path + [type(move).__name__]
@@ -113,7 +113,7 @@ class GreedySearch(SearchAlgorithm):
                 self.metrics_collector.stop()
                 return path, len(path)
                 
-            for move in [SlideLeft(), SlideRight(), SlideUp(), SlideDown()]:
+            for move in POSSIBLE_MOVES:
                 next_state = move.apply(current_state)
                 if next_state:
                     next_state_hash = hash(next_state)
