@@ -54,7 +54,7 @@ def run_benchmark():
     # Define algorithms and heuristics
     algorithms = [
         ("BFS", lambda state: search_algorithm.BFS(deepcopy(state))),
-        ("IDS", lambda state: search_algorithm.IDS(deepcopy(state))),
+        ("IDS", lambda state, optimal_moves: search_algorithm.IDS(deepcopy(state), optimal_moves)),
         ("Greedy-SumTeleport", lambda state: search_algorithm.GreedySearch(
             deepcopy(state), heuristic.SumMinMovesTeleport())),
         ("Greedy-MaxTeleport", lambda state: search_algorithm.GreedySearch(
@@ -81,7 +81,7 @@ def run_benchmark():
             print(f"\nRunning {alg_name} on {level_name}...")
             try:
                 # Set a timeout for each algorithm (30 seconds)
-                algorithm_instance = alg_factory(level.initial_state)
+                algorithm_instance = alg_factory(level.initial_state) if alg_name != "IDS" else alg_factory(level.initial_state, level.optimal_moves)
                 metrics = run_algorithm(alg_name, algorithm_instance, level_name, level.optimal_moves)
                 all_metrics.append(metrics)
             except Exception as e:

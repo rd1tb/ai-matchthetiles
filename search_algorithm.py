@@ -45,9 +45,13 @@ class BFS(SearchAlgorithm):
 class IDS(SearchAlgorithm):
     """Iterative Deepening Search algorithm."""
     
+    def __init__(self, initial_state: GameState, optimal_moves: int = None):
+        super().__init__(initial_state)
+        self.optimal_moves = optimal_moves if optimal_moves is not None else 20  # fallback to 20 if not provided
+    
     def solve(self) -> Tuple[List[str], int]:
         self.metrics_collector.start()
-        max_depth = 20  # Set a reasonable maximum depth
+        max_depth = self.optimal_moves  # Use optimal_moves as max_depth
         
         for depth in range(1, max_depth + 1):
             visited_hashes = set()

@@ -158,7 +158,7 @@ def main():
         metrics_list.append(metrics)
     
     if choice == 2 or choice == 9:
-        ids = search_algorithm.IDS(deepcopy(initial_state))
+        ids = search_algorithm.IDS(deepcopy(initial_state), optimal_moves)
         metrics = run_algorithm("IDS", ids, level_name, optimal_moves)
         metrics_list.append(metrics)
     
