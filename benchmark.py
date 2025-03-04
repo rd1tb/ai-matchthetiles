@@ -33,6 +33,18 @@ def run_benchmark(args=None):
         ("Greedy-SumConflicts", lambda state: search_algorithm.GreedySearch(
             deepcopy(state), heuristic.SumMinMovesConflicts())),
         ("Greedy-MaxConflicts", lambda state: search_algorithm.GreedySearch(
+            deepcopy(state), heuristic.MaxMinMovesConflicts())),
+        ("Astar-SumTeleport", lambda state: search_algorithm.Astar(
+            deepcopy(state), heuristic.SumMinMovesTeleport())),
+        ("Astar-MaxTeleport", lambda state: search_algorithm.Astar(
+            deepcopy(state), heuristic.MaxMinMovesTeleport())),
+        ("Astar-SumBlockers", lambda state: search_algorithm.Astar(
+            deepcopy(state), heuristic.SumMinMovesBlockers())),
+        ("Astar-MaxBlockers", lambda state: search_algorithm.Astar(
+            deepcopy(state), heuristic.MaxMinMovesBlockers())),
+        ("Astar-SumConflicts", lambda state: search_algorithm.Astar(
+            deepcopy(state), heuristic.SumMinMovesConflicts())),
+        ("Astar-MaxConflicts", lambda state: search_algorithm.Astar(
             deepcopy(state), heuristic.MaxMinMovesConflicts()))
     ]
     
