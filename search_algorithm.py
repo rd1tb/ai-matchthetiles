@@ -5,6 +5,7 @@ from move import POSSIBLE_MOVES
 from metrics_collector import MetricsCollector
 from typing import Tuple, List, Set
 import heapq
+from math import floor
 
 class SearchAlgorithm(ABC):
     def __init__(self, initial_state: GameState, heuristic_func: Heuristic = None):
@@ -51,7 +52,7 @@ class IDS(SearchAlgorithm):
     
     def solve(self) -> Tuple[List[str], int]:
         self.metrics_collector.start()
-        max_depth = self.optimal_moves  # Use optimal_moves as max_depth
+        max_depth = floor(1.5*self.optimal_moves)  # Use 1.5 * optimal_moves as max_depth to give IDS a chance to find a solution
         
         for depth in range(1, max_depth + 1):
             visited_hashes = set()
