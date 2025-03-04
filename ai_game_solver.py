@@ -28,13 +28,15 @@ class AIGameSolver:
 
             9: ("Astar-SumTeleport", lambda state: search_algorithm.Astar(
                 deepcopy(state), heuristic.SumMinMovesTeleport())),
-            10: ("Astar-SumBlockers", lambda state: search_algorithm.Astar(
+            10: ("Greedy-MaxTeleport", lambda state: search_algorithm.Astar(
+                deepcopy(state), heuristic.MaxMinMovesTeleport())),
+            11: ("Astar-SumBlockers", lambda state: search_algorithm.Astar(
                 deepcopy(state), heuristic.SumMinMovesBlockers())),
-            11: ("Astar-MaxBlockers", lambda state: search_algorithm.Astar(
+            12: ("Astar-MaxBlockers", lambda state: search_algorithm.Astar(
                 deepcopy(state), heuristic.MaxMinMovesBlockers())),
-            12: ("Astar-SumConflicts", lambda state: search_algorithm.Astar(
+            13: ("Astar-SumConflicts", lambda state: search_algorithm.Astar(
                 deepcopy(state), heuristic.SumMinMovesConflicts())),
-            13: ("Astar-MaxConflicts", lambda state: search_algorithm.Astar(
+            14: ("Astar-MaxConflicts", lambda state: search_algorithm.Astar(
                 deepcopy(state), heuristic.MaxMinMovesConflicts()))
         }
     
@@ -42,7 +44,7 @@ class AIGameSolver:
         print("\nAvailable algorithms:")
         for i, (name, _) in self.algorithms.items():
             print(f"{i}. {name}")
-        print("14. Run all algorithms and generate comparison plots")
+        print("15. Run all algorithms and generate comparison plots")
 
         return int(input("\nEnter your choice (1-14): "))
     
@@ -62,7 +64,7 @@ class AIGameSolver:
             metrics = run_algorithm(name, algorithm, level_name, optimal_moves)
             metrics_list.append(metrics)
             
-        elif algorithm_choice == 14:
+        elif algorithm_choice == 15:
             for name, alg_factory in self.algorithms.values():
                 algorithm = (alg_factory(initial_state, optimal_moves) 
                             if name == "IDS" else alg_factory(initial_state))
@@ -72,7 +74,7 @@ class AIGameSolver:
             print("\nInvalid choice, please try again")
             return []
         
-        if algorithm_choice == 9 or len(metrics_list) > 1:
+        if algorithm_choice == 15 or len(metrics_list) > 1:
             plot_metrics(metrics_list)
             
         return metrics_list
