@@ -1,77 +1,88 @@
 from copy import deepcopy
-
-from move import SlideDown, SlideLeft, SlideRight, SlideUp
+from game_state import GameState
+from level import Level
+from level_manager import LevelManager
+from move import SlideDown, SlideLeft, SlideRight, SlideUp, POSSIBLE_MOVES
 
 class PlayGame():
-    def __init__(self, initial_state, optimal_moves):
-        self.initial_state = initial_state
-        self.optimal_moves = optimal_moves
-        self.running = False
+    def __init__(self, level_manager: LevelManager):
         self.move_history = []
         self.running = True
-    def play_game(self):
-        print("Initial board:")
-        print(self.initial_state)
+        self.level_manager = level_manager
+
+    def play_game(self, level_index: int, level: Level):
+        initial_state = deepcopy(level.initial_state)
+        optimal_moves = level.optimal_moves
+        self._print_board(level_index, initial_state, "initial")
         i = 0
+
         while self.running:
-            print("")
-            user_input = input("Enter move (right, left, up, down, hint, quit): ").strip().lower()
-            if user_input in ["right", "left", "up", "down"]:
-                if user_input == "up":
-                    next_state = SlideUp().apply(self.initial_state)
+            user_input = input("\nEnter move ([l]eft, [r]ight, [u]p, [d]own, [h]int, [s]tart-over, [q]uit): ").strip().lower()
+            if user_input in ["right", "r", "left", "l", "up", "u", "down", "d"]:
+                if user_input == "up" or user_input == "u":
+                    next_state = SlideUp().apply(initial_state)
                     if next_state:
-                        self.initial_state = next_state
+                        initial_state = next_state
                         i += 1
-                elif user_input == "down":
-                    next_state = SlideDown().apply(self.initial_state)
+                elif user_input == "down" or user_input == "d":
+                    next_state = SlideDown().apply(initial_state)
                     if next_state:
-                        self.initial_state = next_state
+                        initial_state = next_state
                         i += 1
-                elif user_input == "left":
-                    next_state = SlideLeft().apply(self.initial_state)
+                elif user_input == "left" or user_input == "l":
+                    next_state = SlideLeft().apply(initial_state)
                     if next_state:
-                        self.initial_state = next_state
+                        initial_state = next_state
                         i += 1
-                elif user_input == "right":
-                    next_state = SlideRight().apply(self.initial_state)
+                elif user_input == "right" or user_input == "r":
+                    next_state = SlideRight().apply(initial_state)
                     if next_state:
-                        self.initial_state = next_state
+                        initial_state = next_state
                         i += 1
                 else:
                     print("Invalid move. Please try again.")
 
-                print("Number of moves: ", i)
-                print("New board:")
-                print(self.initial_state)
+                print("\nNumber of moves: ", i)
+                self._print_board(level_index, initial_state, "new")
 
-                if self.initial_state.is_solved():
-                    print("You won!")
-                    if i == self.optimal_moves:
+                if initial_state.is_solved():
+                    print("\nYou won!")
+                    if i == optimal_moves:
                         print(f"Congratulations! You have achieved the perfect score: {i} moves.")
                     else:
                         print("Congratulations! Solution found in", i, "moves.")
-                        print("The perfect score is", self.optimal_moves, "moves.")
-                    break
+                        print("The perfect score is", optimal_moves, "moves.")
 
-            elif user_input == "hint":
-                if self.get_hint():
-                    print("Hint: ", self.get_hint())
+                    next_level = self.level_manager.get_next_level(level_index)
+                    if not next_level:
+                        print("\nYou reached the end of the game!\nSee you again!\n")
+                        return
+                    else:
+                        print("\nLoading the next level...")
+                        self.play_game(next_level[0], next_level[1])
+
+            elif user_input == "hint" or user_input == "h":
+                hint = self.get_hint(initial_state)
+                if hint:
+                    print("Hint: ", hint)
                 else:
-                    print("No solution found.")
+                    print("No solution found, please try again.")
+                    self.play_game(level_index, level)
 
-            elif user_input == "quit":
+            elif user_input == "start-over" or user_input == "s" or user_input=="start" or user_input=="startover":
+                self.play_game(level_index, level)
+
+            elif user_input == "quit" or user_input == "q":
                 print("Exiting game...")
                 self.running = False
             else:
-                print("Invalid input. Please enter 'right', 'left', 'up', 'down', or 'quit'.")
+                print("Invalid input. Please enter [l]eft, [r]ight, [u]p, [d]own, [h]int or [q]uit.")
 
+    def get_hint(self, state: GameState):
+        return self._first_move_bfs(state)
 
-
-    def get_hint(self):
-        return self.bfs()
-
-    def bfs(self):
-            problem = deepcopy(self.initial_state)
+    def _first_move_bfs(self, state: GameState):
+            problem = deepcopy(state)
             queue = [(problem, [])]
             visited_hashes = set()
             visited_hashes.add(hash(problem))
@@ -82,7 +93,7 @@ class PlayGame():
                 if current_state.is_solved():
                     return path[0]
 
-                for move in [SlideLeft(), SlideRight(), SlideUp(), SlideDown()]:
+                for move in POSSIBLE_MOVES:
                     next_state = move.apply(current_state)
                     if next_state:
                         next_state_hash = hash(next_state)
@@ -91,3 +102,8 @@ class PlayGame():
                             queue.append((next_state, path + [type(move).__name__]))
 
             return None
+
+    def _print_board(self, level_index: int, state: GameState, version: str):
+        print(f"\nLevel {level_index} - {version} board")
+        print("-" * 25)
+        print(state)

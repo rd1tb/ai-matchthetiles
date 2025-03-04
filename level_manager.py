@@ -383,5 +383,5 @@ class LevelManager:
 
         for level_num, level in sorted(matching_levels):
             print(f"\nLevel {level_num}")
-            print("-" * 10)
+            print("-" * 15)
             print(level.initial_state)

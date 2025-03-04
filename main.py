@@ -30,7 +30,7 @@ def main():
                     continue
                 level = level_manager.get_level(level_index)
                 if choice == "1":
-                    PlayGame(deepcopy(level.initial_state), level.optimal_moves).play_game()
+                    PlayGame(level_manager).play_game(level_index, level)
                     continue
                 if choice == "2":
                     AIGameSolver(level_manager).solve_level(level_index, level)
