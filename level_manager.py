@@ -1,15 +1,11 @@
 import random
 from game_state import GameState
-from typing import Dict, List
-from search_algorithm import BFS
+from typing import Dict, List, Tuple, Optional
 import os
 import re
-from copy import deepcopy
-
-class Level:
-    def __init__(self, initial_state: GameState, optimal_moves: int):
-        self.initial_state = initial_state
-        self.optimal_moves = optimal_moves
+from level import Level
+from level_validator import LevelValidator
+from sortedcontainers import SortedDict
 
 class LevelManager:
     PREDEFINED_LEVELS = {
@@ -225,7 +221,7 @@ class LevelManager:
                     tiles={(0, 1): "blue", (3, 2): "red"},
                     targets={(2, 3): "blue", (4, 1): "red"},
                     blanks=[(0, 3), (1, 1), (1, 2), (1, 3), (1, 4), (2, 0), (2, 1), (2, 2), (2, 4), (3, 0), (3, 1), (3, 4), (4, 0), (4, 2), (4, 3)],
-                    blockers=[(0, 0), (0, 2), (0, 4), (3, 3), (4, 4)],
+                    blockers=[(0, 0), (0, 2), (0, 4), (1, 0), (3, 3), (4, 4)],
                     size=5
                 ),
             15
@@ -246,7 +242,7 @@ class LevelManager:
                 GameState(
                     tiles={(0, 1): "purple", (0, 5): "blue", (2, 0): "orange"},
                     targets={(0, 4): "blue", (1, 3): "orange", (3, 5): "purple"},
-                    blanks=[(0, 0), (0, 2), (0, 3), (1, 0), (1, 1), (1, 5), (2, 1), (2, 3), (2, 4), (2, 5), (3, 1), (3, 3), (3, 4), (4, 0), (4, 1), (4, 2), (5, 1), (5, 2), (5, 3), (5, 4), (5, 5)],
+                    blanks=[(0, 0), (0, 2), (0, 3), (1, 0), (1, 1), (1, 5), (2, 1), (2, 2), (2, 4), (2, 5), (3, 1), (3, 3), (3, 4), (4, 0), (4, 1), (4, 2), (5, 1), (5, 2), (5, 3), (5, 4), (5, 5)],
                     blockers=[(1, 2), (1, 4), (2, 3), (3, 0), (3, 2), (4, 3), (4, 4), (4, 5), (5, 0)],
                     size=6
                 ),
@@ -288,14 +284,14 @@ class LevelManager:
     }
 
     def __init__(self, levels: Dict[int, List[Level]] = None):
-        combined_levels = self.PREDEFINED_LEVELS.copy()
+        self.validator = LevelValidator()
+        self.levels = SortedDict(self.PREDEFINED_LEVELS)
         if levels:
             for k, v in levels.items():
-                if k in combined_levels:
-                    combined_levels[k].extend([v] if not isinstance(v, list) else v)
+                if k in self.levels:
+                    self.levels[k].extend([v] if not isinstance(v, list) else v)
                 else:
-                    combined_levels[k] = [v] if not isinstance(v, list) else v
-        self.levels = combined_levels
+                    self.levels[k] = [v] if not isinstance(v, list) else v
 
     def get_level(self, level_index: int) -> Level:
         if level_index not in self.levels:
@@ -303,36 +299,22 @@ class LevelManager:
         level_list = self.levels[level_index]
         return random.choice(level_list)
 
+    def get_next_level(self, current_level: int) -> Optional[Tuple[int, Level]]:
+        try:
+            index = self.levels.bisect_right(current_level)
+            if index < len(self.levels):
+                next_level_num = self.levels.keys()[index]
+                return next_level_num, self.get_level(next_level_num)
+        except ValueError:
+            pass
+        return None
+
     def add_level(self, level_index: int, level: Level):
         if level_index in self.levels:
             if level not in self.levels[level_index]:
                 self.levels[level_index].append(level)
         else:
             self.levels[level_index] = [level]
-
-    def _check_if_level_is_solvable(self, level: Level) -> Level:
-        tile_colors = {}
-        target_colors = {}
-        for color in level.initial_state.tiles.values():
-            tile_colors[color] = tile_colors.get(color, 0) + 1
-        for color in level.initial_state.targets.values():
-            target_colors[color] = target_colors.get(color, 0) + 1
-
-        if tile_colors != target_colors:
-            print(f"Error! Level is not solvable, the number of tiles and targets do not match.")
-            return None
-
-        bfs = BFS(deepcopy(level.initial_state))
-        _, optimal_moves = bfs.solve()
-        if optimal_moves is None:
-            print(f"Error! Level is not solvable, no solution exists.")
-            return None
-
-        if level.optimal_moves is not None and level.optimal_moves != optimal_moves:
-            print(f"Warning! Level is not solvable in {level.optimal_moves} moves, updating the optimal number of moves to {optimal_moves}.")
-            return Level(level.initial_state, optimal_moves)
-
-        return level
 
     def load_level_from_file(self, file_path: str):
         if not os.path.exists(file_path):
@@ -373,8 +355,30 @@ class LevelManager:
 
         game_state = GameState(tiles=tiles, targets=targets, blanks=blanks, blockers=blockers, size=size)
         level = Level(initial_state=game_state, optimal_moves=read_optimal_moves)
-
-        if not self._check_if_level_is_solvable(level):
+        if not self.validator.validate_level(level):
             return
 
         self.add_level(level_index, level)
+
+    def print_levels_by_size(self, board_size: int) -> None:
+        """
+        Prints all levels with the specified board size.
+        """
+        matching_levels = []
+
+        for level_num, level_list in self.levels.items():
+            for level in level_list:
+                if level.initial_state.size == board_size:
+                    matching_levels.append((level_num, level))
+
+        if not matching_levels:
+            print(f"No levels found with board size {board_size}x{board_size}")
+            return
+
+        print(f"\nLevels with {board_size}x{board_size} board:")
+        print("=" * 25)
+
+        for level_num, level in sorted(matching_levels):
+            print(f"\nLevel {level_num}")
+            print("-" * 10)
+            print(level.initial_state)
