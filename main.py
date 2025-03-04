@@ -5,6 +5,7 @@ from copy import deepcopy
 import heuristic
 from benchmark_utils import run_algorithm, plot_metrics
 from ai_game_solver import AIGameSolver
+from play_game import PlayGame
 
 def main():
     level_manager = LevelManager()
@@ -28,6 +29,9 @@ def main():
                     print(f"\nLevel {level_index} is not available")
                     continue
                 level = level_manager.get_level(level_index)
+                if choice == "1":
+                    PlayGame(deepcopy(level.initial_state), level.optimal_moves).play_game()
+                    continue
                 if choice == "2":
                     AIGameSolver(level_manager).solve_level(level_index, level)
                 else:

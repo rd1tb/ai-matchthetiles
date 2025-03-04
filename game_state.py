@@ -31,13 +31,18 @@ class GameState:
     def __str__(self):
         board = {}
         for pos, color in self.tiles.items():
-            board[pos] = f"{color[0]}"
+            board[pos] = f"{color[0]} "
         for pos, color in self.targets.items():
-            board[pos] = f"{color[0].upper()}"
+            board[pos] = f"{color[0].upper()} "
         for pos in self.blanks:
-            board[pos] = "*"
+            board[pos] = "__"
         for pos in self.blockers:
-            board[pos] = "#"
+            board[pos] = "##"
+
+        for pos, color in self.tiles.items():
+            if pos in self.targets:
+                pos_color = self.targets[pos]
+                board[pos] = f"{pos_color[0].upper()}{color[0].lower()}"
 
         output = ""
         for y in range(self.size):
