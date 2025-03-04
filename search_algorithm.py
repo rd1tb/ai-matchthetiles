@@ -108,7 +108,7 @@ class GreedySearch(SearchAlgorithm):
         while priority_queue:
             _, _, current_state, path = heapq.heappop(priority_queue)
             self.metrics_collector.track_state()
-            
+
             if current_state.is_solved():
                 self.metrics_collector.stop()
                 return path, len(path)
@@ -124,5 +124,43 @@ class GreedySearch(SearchAlgorithm):
                         heapq.heappush(priority_queue, (h_value, state_counter, next_state, new_path))
                         state_counter += 1
                         
+        self.metrics_collector.stop()
+        return None, None
+
+
+class Astar(SearchAlgorithm):
+    """Greedy Best-First Search using a heuristic function."""
+
+    def solve(self) -> Tuple[List[str], int]:
+        if not self.heuristic:
+            raise ValueError("Greedy search requires a heuristic function")
+
+        self.metrics_collector.start()
+
+        # Priority queue with (heuristic_value, state_id, state, path)
+        # state_id is used to break ties and ensure deterministic behavior
+        priority_queue = [(self.heuristic.evaluate(self.initial_state), 0, self.initial_state, [])]
+        visited_hashes = set([hash(self.initial_state)])
+        state_counter = 1
+
+        while priority_queue:
+            _, _, current_state, path = heapq.heappop(priority_queue)
+            self.metrics_collector.track_state()
+
+            if current_state.is_solved():
+                self.metrics_collector.stop()
+                return path, len(path)
+
+            for move in POSSIBLE_MOVES:
+                next_state = move.apply(current_state)
+                if next_state:
+                    next_state_hash = hash(next_state)
+                    if next_state_hash not in visited_hashes:
+                        visited_hashes.add(next_state_hash)
+                        new_path = path + [type(move).__name__]
+                        h_value = self.heuristic.evaluate(next_state) + len(path)
+                        heapq.heappush(priority_queue, (h_value, state_counter, next_state, new_path))
+                        state_counter += 1
+
         self.metrics_collector.stop()
         return None, None
