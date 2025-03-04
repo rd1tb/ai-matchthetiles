@@ -38,7 +38,7 @@ def main():
                     # Play the game as user
                     return    
             elif choice == "3":
-                board_size = int(input("\nEnter the board size [4-6]: "))
+                board_size = int(input("\nEnter the board size (4-6): "))
                 if board_size not in [4, 5, 6]:
                     print("\nInvalid board size, please enter 4, 5, or 6")
                     continue

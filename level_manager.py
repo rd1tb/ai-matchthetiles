@@ -341,7 +341,7 @@ class LevelManager:
             for j, cell in enumerate(line):
                 if cell == '#':
                     blockers.append((j, i))
-                elif cell == '*':
+                elif cell == '_':
                     blanks.append((j, i))
                 elif cell.isupper():
                     tiles[(j, i)] = cell.lower()
@@ -357,6 +357,7 @@ class LevelManager:
             read_optimal_moves = None
 
         game_state = GameState(tiles=tiles, targets=targets, blanks=blanks, blockers=blockers, size=size)
+        print(game_state)
         level = Level(initial_state=game_state, optimal_moves=read_optimal_moves)
         if not self.validator.validate_level(level):
             return
