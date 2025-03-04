@@ -47,6 +47,7 @@ def plot_metrics(metrics_list):
     plt.xticks(index + bar_width * (len(algorithms)-1)/2, levels)
     plt.legend()
     plt.savefig("results/time_comparison.png")
+    plt.close()
     
     # Plot memory comparison
     plt.figure(figsize=(12, 8))
@@ -61,11 +62,12 @@ def plot_metrics(metrics_list):
     plt.xticks(index + bar_width * (len(algorithms)-1)/2, levels)
     plt.legend()
     plt.savefig("results/memory_comparison.png")
+    plt.close()
     
     # Plot states generated comparison
     plt.figure(figsize=(12, 8))
     for i, alg in enumerate(algorithms):
-        states = [next((m["states"] for m in metrics_list if m["algorithm"] == alg and m["level"] == level), 0) 
+        states = [next((m["states_generated"] for m in metrics_list if m["algorithm"] == alg and m["level"] == level), 0) 
                  for level in levels]
         plt.bar(index + i*bar_width, states, bar_width, label=alg)
     
@@ -75,12 +77,15 @@ def plot_metrics(metrics_list):
     plt.xticks(index + bar_width * (len(algorithms)-1)/2, levels)
     plt.legend()
     plt.savefig("results/states_comparison.png")
+    plt.close()
     
     # Plot solution quality (difference from optimal)
     plt.figure(figsize=(12, 8))
     for i, alg in enumerate(algorithms):
-        diff = [next((m["difference"] for m in metrics_list if m["algorithm"] == alg and m["level"] == level), 0) 
-               for level in levels]
+        # Handle None values in difference_from_optimal
+        diff = [next((m["difference_from_optimal"] if m["difference_from_optimal"] is not None else 0 
+                      for m in metrics_list if m["algorithm"] == alg and m["level"] == level), 0) 
+                for level in levels]
         plt.bar(index + i*bar_width, diff, bar_width, label=alg)
     
     plt.xlabel('Level')
@@ -89,5 +94,6 @@ def plot_metrics(metrics_list):
     plt.xticks(index + bar_width * (len(algorithms)-1)/2, levels)
     plt.legend()
     plt.savefig("results/solution_quality_comparison.png")
+    plt.close()
     
-    print(f"Plots saved to the 'results' directory") 
+    print(f"Plots saved to the 'results' directory")

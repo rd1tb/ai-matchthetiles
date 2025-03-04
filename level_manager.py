@@ -308,6 +308,9 @@ class LevelManager:
         except ValueError:
             pass
         return None
+    
+    def get_available_levels_numbers(self)-> List[int]:
+        return sorted(self.levels.keys())
 
     def add_level(self, level_index: int, level: Level):
         if level_index in self.levels:
