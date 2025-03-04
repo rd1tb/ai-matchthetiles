@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.patheffects as path_effects
 import numpy as np
 import os
 
@@ -114,18 +115,47 @@ def plot_metrics(metrics_list):
     
     # Plot solution quality (difference from optimal)
     plt.figure(figsize=(12, 8))
+
     for i, alg in enumerate(algorithms):
-        # Handle None values in difference_from_optimal
-        diff = [next((m["difference_from_optimal"] if m["difference_from_optimal"] is not None else 0 
-                      for m in metrics_list if m["algorithm"] == alg and m["level"] == level), 0) 
+        moves = [next((m["solution_moves"] if m["solution_moves"] is not None else 0
+                    for m in metrics_list if m["algorithm"] == alg and m["level"] == level), 0)
                 for level in levels]
-        plt.bar(index + i*bar_width, diff, bar_width, label=alg, color=colors[i])
-    
+        optimal_moves = [next((m["optimal_moves"] for m in metrics_list if m["algorithm"] == alg and m["level"] == level), 0)
+                        for level in levels]
+        # Plot bars with normal alpha unless they represent the optimal solution
+        bars = plt.bar(index + i * bar_width, moves, bar_width, label=alg, color=colors[i])
+
+        # Plot optimal bars with alpha=0.3
+        for j, (bar, opt) in enumerate(zip(bars, optimal_moves)):
+            if moves[j] == opt:
+                bar.set_alpha(0.3)  # Make optimal bars more transparent
+
+        for bar, move in zip(bars, moves):
+            if move == 0:
+                text = plt.text(bar.get_x() + bar.get_width() / 2, 1,
+                     "X", ha='center', va='center', fontsize=20,
+                     color=bar.get_facecolor(), rotation=90, fontweight='bold', alpha=0.9)
+                text.set_path_effects([path_effects.withStroke(linewidth=2, foreground='grey')])
+
+    # Draw black dashed line at optimal solution level
+    plt.axhline(y=optimal_moves[0], color='grey', linestyle='dashed', linewidth=2, alpha=0.7)
+    plt.text(bar_width, optimal_moves[0] + 0.1, "Optimal Solution",
+                 ha='left', va='bottom', fontsize=10, color='grey', fontweight='bold', alpha=0.9)
+
     plt.xlabel('Level')
-    plt.ylabel('Difference from Optimal Solution')
+    plt.ylabel('Number of Solution Moves')
     plt.title('Solution Quality Comparison by Algorithm and Level')
     plt.xticks(index + bar_width * (len(algorithms)-1)/2, levels)
-    plt.legend()
+
+    max_moves = max([next((m["solution_moves"] if m["solution_moves"] is not None else 0
+                        for m in metrics_list if m["algorithm"] == alg and m["level"] == level), 0)
+                    for alg in algorithms for level in levels])
+
+    max_y = max(2*max_moves+1, 6) if max_moves < 20 else (1.5*max_moves+1)
+    diff_y = 1 if max_y < 10 else 2
+    plt.yticks(np.arange(0, max_y, diff_y))
+
+    plt.legend(loc='best')
     plt.savefig(f"results/solution_quality_comparison_level{number}.png", bbox_inches='tight', pad_inches=0.1)
     plt.close()
     
