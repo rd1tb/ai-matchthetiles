@@ -3,7 +3,3 @@ numpy==1.24.3
 pandas==2.0.1
 seaborn==0.12.2
 sortedcontainers==2.4.0
-keyboard==0.13.5
-colorama==0.4.6
-psutil==5.9.5
-pytest==7.4.0
