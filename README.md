@@ -10,7 +10,7 @@ In "Match The Tiles", the goal is to move colored tiles to their matching target
 
 1. **Play Mode**: Interactive gameplay where users can solve puzzles themselves
 2. **AI Solver**: Multiple search algorithms to automatically solve puzzles
-3. **Level Management**: Support for loading and validating custom levels
+3. **Level Management**: Support for printing, loading and validating levels
 4. **Benchmarking**: Comprehensive performance comparison of different algorithms
 
 ## Implemented Search Algorithms
@@ -18,10 +18,11 @@ In "Match The Tiles", the goal is to move colored tiles to their matching target
 1. **Breadth-First Search (BFS)**: Explores all possible states at the current depth before moving to the next depth level.
 2. **Iterative Deepening Search (IDS)**: Combines depth-first search with increasing depth limits to find the optimal solution.
 3. **Greedy Best-First Search**: Uses various heuristics to guide the search towards promising states.
+4. **A\***: Uses a combination of path cost and heuristics to find the optimal solution efficiently.
 
 ## Heuristics
 
-Several heuristics are implemented to guide the greedy search:
+Several heuristics are implemented to guide the greedy and A\* search:
 
 - **SumMinMovesTeleport**: Calculates the sum of minimum moves needed using teleport movement.
 - **MaxMinMovesTeleport**: Calculates the maximum of minimum moves needed using teleport movement.
@@ -34,9 +35,9 @@ Several heuristics are implemented to guide the greedy search:
 
 1. Clone the repository
 2. Install the required dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
+  ```
+  pip install -r requirements.txt
+  ```
 
 ## Usage
 
@@ -107,8 +108,8 @@ For each algorithm and level, the following metrics are collected:
 - `play_game.py`: Interactive gameplay implementation
 - `ai_game_solver.py`: AI solver implementation
 - `game_state.py`: Game state representation and mechanics
-- `search_algorithm.py`: Search algorithms implementation (BFS, IDS, Greedy)
-- `heuristic.py`: Heuristic functions for greedy search
+- `search_algorithm.py`: Search algorithms implementation (BFS, IDS, Greedy, A\*)
+- `heuristic.py`: Heuristic functions for greedy and A\* search
 - `level_manager.py`: Level loading and management
 - `level_validator.py`: Custom level validation
 - `level.py`: Level class implementation
