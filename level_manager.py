@@ -384,9 +384,9 @@ class LevelManager:
                 elif cell == '_':
                     blanks.append((j, i))
                 elif cell.isupper():
-                    tiles[(j, i)] = cell.lower()
-                else:
                     targets[(j, i)] = cell.lower()
+                else:
+                    tiles[(j, i)] = cell.lower()
 
         if len(lines) > size:
             try:
