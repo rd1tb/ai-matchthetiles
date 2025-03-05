@@ -6,11 +6,13 @@ from search_algorithm import BFS
 
 class LevelValidator:
     def validate_level(self, level: Level) -> bool:
-        """
-        Validates a level's correctness and solvability.
+        """Validates a level's correctness and solvability.
+
+        Args:
+            level (Level): The level to validate.
 
         Returns:
-            bool: True if level is valid and solvable, False otherwise
+            bool: True if level is valid and solvable, False otherwise.
         """
         if not self._has_matching_colors(level):
             print("Error: Mismatched tiles and targets")
@@ -29,7 +31,14 @@ class LevelValidator:
         return True
 
     def _has_matching_colors(self, level: Level) -> bool:
-        """Checks if the number of tiles matches targets for each color."""
+        """Checks if the number of tiles matches targets for each color.
+
+        Args:
+            level (Level): The level to check.
+
+        Returns:
+            bool: True if the number of tiles matches targets for each color, False otherwise.
+        """
         tile_colors = {}
         target_colors = {}
         for color in level.initial_state.tiles.values():
@@ -43,7 +52,14 @@ class LevelValidator:
         return True
 
     def _validate_board_fields(self, level: Level) -> bool:
-        """Validates that each field in the NxN board contains valid content."""
+        """Validates that each field in the NxN board contains valid content.
+
+        Args:
+            level (Level): The level to validate.
+
+        Returns:
+            bool: True if each field in the board contains valid content, False otherwise.
+        """
         size = level.initial_state.size
         valid_positions = {(x, y) for x in range(size) for y in range(size)}
         used_positions = set()
@@ -77,13 +93,25 @@ class LevelValidator:
         return len(valid_positions - used_positions) == 0
 
     def _find_optimal_solution(self, level: Level) -> int:
-        """Finds the optimal number of moves to solve the level using BFS."""
+        """Finds the optimal number of moves to solve the level using BFS.
+
+        Args:
+            level (Level): The level to solve.
+
+        Returns:
+            int: The optimal number of moves to solve the level, or None if no solution exists.
+        """
         bfs = BFS(deepcopy(level.initial_state))
         _, optimal_moves = bfs.solve()
         return optimal_moves if optimal_moves is not None else None
 
     def _update_optimal_moves(self, level: Level, optimal_moves: int):
-        """Updates the level's optimal move count if necessary."""
+        """Updates the level's optimal move count if necessary.
+
+        Args:
+            level (Level): The level to update.
+            optimal_moves (int): The optimal number of moves to solve the level.
+        """
         if level.optimal_moves is not None and level.optimal_moves == optimal_moves:
             return
         elif level.optimal_moves is None:

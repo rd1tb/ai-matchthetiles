@@ -4,11 +4,22 @@ from game_state import GameState
 
 
 class Move(ABC):
+    """Abstract base class for game moves."""
+
     @abstractmethod
     def apply(self, state: 'GameState') -> 'GameState':
+        """Applies the move to the given game state.
+
+        Args:
+            state (GameState): The current game state.
+
+        Returns:
+            GameState: The new game state after applying the move.
+        """
         pass
 
     def move(func):
+        """Decorator to handle move application and history tracking."""
         def wrapper(self, state: GameState):
             new_state = GameState(state.tiles, state.targets, state.blanks, state.blockers, state.size)
             new_state.move_history = state.move_history
@@ -20,6 +31,8 @@ class Move(ABC):
         return wrapper
 
 class SlideLeft(Move):
+    """Represents a slide left move."""
+
     @Move.move
     def apply(self, state: 'GameState') -> 'GameState':
         new_tiles = state.tiles.copy()
@@ -50,6 +63,8 @@ class SlideLeft(Move):
             return False
 
 class SlideRight(Move):
+    """Represents a slide right move."""
+
     @Move.move
     def apply(self, state: 'GameState') -> 'GameState':
         new_tiles = state.tiles.copy()
@@ -80,6 +95,8 @@ class SlideRight(Move):
             return False
 
 class SlideUp(Move):
+    """Represents a slide up move."""
+
     @Move.move
     def apply(self, state: 'GameState') -> 'GameState':
         new_tiles = state.tiles.copy()
@@ -110,6 +127,8 @@ class SlideUp(Move):
             return False
 
 class SlideDown(Move):
+    """Represents a slide down move."""
+
     @Move.move
     def apply(self, state: 'GameState') -> 'GameState':
         new_tiles = state.tiles.copy()

@@ -10,6 +10,11 @@ from level_manager import LevelManager
 
 class AIGameSolver:
     def __init__(self, level_manager: LevelManager):
+        """Initializes the AIGameSolver with a LevelManager.
+
+        Args:
+            level_manager (LevelManager): The manager for game levels.
+        """
         self.level_manager = level_manager
         self.algorithms = {
             1: ("BFS", lambda state: search_algorithm.BFS(deepcopy(state))),
@@ -43,6 +48,11 @@ class AIGameSolver:
         }
     
     def _choose_algorithm(self) -> int:
+        """Displays available algorithms and prompt the user to choose one.
+
+        Returns:
+            int: The chosen algorithm index.
+        """
         print("\nAvailable algorithms:")
         for i, (name, _) in self.algorithms.items():
             print(f"{i}. {name}")
@@ -51,7 +61,15 @@ class AIGameSolver:
         return int(input("\nEnter your choice (1-15): "))
     
     def solve_level(self, level_index: int, level: Level) -> list:
-        """Solve a level using selected algorithm(s)."""
+        """Solves a level using selected algorithm(s).
+
+        Args:
+            level_index (int): The index of the level to solve.
+            level (Level): The level object containing the initial state and optimal moves.
+
+        Returns:
+            list: A list of metrics for the algorithms run.
+        """
         # Get level and initial state
         level_name = f"Level {level_index}"
         algorithm_choice = self._choose_algorithm()

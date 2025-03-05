@@ -287,6 +287,11 @@ class LevelManager:
     }
 
     def __init__(self, levels: Dict[int, List[Level]] = None):
+        """Initializes the LevelManager with predefined levels and optional additional levels.
+
+        Args:
+            levels (Dict[int, List[Level]], optional): Additional levels to add to the manager.
+        """
         self.validator = LevelValidator()
         self.levels = SortedDict(self.PREDEFINED_LEVELS)
         if levels:
@@ -297,12 +302,28 @@ class LevelManager:
                     self.levels[k] = [v] if not isinstance(v, list) else v
 
     def get_level(self, level_index: int) -> Level:
+        """Gets a random level from the specified level index.
+
+        Args:
+            level_index (int): The index of the level to retrieve.
+
+        Returns:
+            Level: A random level from the specified index.
+        """
         if level_index not in self.levels:
             return None
         level_list = self.levels[level_index]
         return random.choice(level_list)
 
     def get_next_level(self, current_level: int) -> Optional[Tuple[int, Level]]:
+        """Gets the next level after the current level.
+
+        Args:
+            current_level (int): The current level index.
+
+        Returns:
+            Optional[Tuple[int, Level]]: The next level index and the level, or None if no next level exists.
+        """
         try:
             index = self.levels.bisect_right(current_level)
             if index < len(self.levels):
@@ -312,10 +333,21 @@ class LevelManager:
             pass
         return None
     
-    def get_available_levels_numbers(self)-> List[int]:
+    def get_available_levels_numbers(self) -> List[int]:
+        """Gets a list of available level numbers.
+
+        Returns:
+            List[int]: A sorted list of available level numbers.
+        """
         return sorted(self.levels.keys())
 
     def add_level(self, level_index: int, level: Level):
+        """Adds a new level to the manager.
+
+        Args:
+            level_index (int): The index of the level to add.
+            level (Level): The level to add.
+        """
         if level_index in self.levels:
             if level not in self.levels[level_index]:
                 self.levels[level_index].append(level)
@@ -323,6 +355,11 @@ class LevelManager:
             self.levels[level_index] = [level]
 
     def load_level_from_file(self, file_path: str):
+        """Loads a level from a file and adds it to the manager.
+
+        Args:
+            file_path (str): The path to the file containing the level.
+        """
         if not os.path.exists(file_path):
             print(f"Error! Did not manage to load a level from {file_path}: file does not exist.")
             return
@@ -368,8 +405,10 @@ class LevelManager:
         self.add_level(level_index, level)
 
     def print_levels_by_size(self, board_size: int) -> None:
-        """
-        Prints all levels with the specified board size.
+        """Prints all levels with the specified board size.
+
+        Args:
+            board_size (int): The size of the board to filter levels by.
         """
         matching_levels = []
 

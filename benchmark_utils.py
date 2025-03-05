@@ -6,6 +6,17 @@ import numpy as np
 
 
 def run_algorithm(algorithm_name, algorithm_instance, level_name, optimal_moves):
+    """Runs the specified algorithm and collects metrics.
+
+    Args:
+        algorithm_name (str): The name of the algorithm.
+        algorithm_instance: The instance of the algorithm to run.
+        level_name (str): The name of the level.
+        optimal_moves (int): The optimal number of moves for the level.
+
+    Returns:
+        dict: A dictionary containing the metrics collected during the run.
+    """
     print(f"\n{algorithm_name}:")
     solution_path, solution_moves = algorithm_instance.solve()
     
@@ -29,6 +40,11 @@ def run_algorithm(algorithm_name, algorithm_instance, level_name, optimal_moves)
     return metrics
 
 def plot_metrics(metrics_list):
+    """Plots various metrics for the algorithms and levels.
+
+    Args:
+        metrics_list (list): A list of dictionaries containing metrics for each algorithm and level.
+    """
     # Create results directory if it doesn't exist
     if not os.path.exists("results"):
         os.makedirs("results")

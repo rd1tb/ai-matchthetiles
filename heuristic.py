@@ -7,6 +7,7 @@ from game_state import GameState
 class Heuristic(ABC):
     @abstractmethod
     def evaluate(self, state: GameState) -> int:
+        """Evaluates the heuristic for the given game state."""
         pass
 
 class MinMovesHeuristic(Heuristic):
@@ -14,10 +15,27 @@ class MinMovesHeuristic(Heuristic):
     MAX_TILES_PER_COLOR = 6
 
     def evaluate(self, state: GameState) -> int:
+        """Evaluates the heuristic for the given game state.
+
+        Args:
+            state (GameState): The current game state.
+
+        Returns:
+            int: The heuristic value.
+        """
         colors = {color for _, color in state.tiles.items()}
         return self._aggregate_results([self._calculate_color(state, color) for color in colors])
 
     def _calculate_color(self, state: GameState, color: str) -> int:
+        """Calculates the heuristic value for a specific color.
+
+        Args:
+            state (GameState): The current game state.
+            color (str): The color to calculate the heuristic for.
+
+        Returns:
+            int: The heuristic value for the color.
+        """
         tiles = [pos for pos, col in state.tiles.items() if col == color]
         targets = [pos for pos, col in state.targets.items() if col == color]
 
@@ -26,11 +44,22 @@ class MinMovesHeuristic(Heuristic):
         return self._permutational_calculation(tiles, targets, state.blockers, state.tiles)
 
     def _simple_calculation(self, tiles: list, targets: list, blockers: list = None, tiles_dict: dict = None) -> int:
+        """Performs a simple calculation for the heuristic.
+
+        Args:
+            tiles (list): List of tile positions.
+            targets (list): List of target positions.
+            blockers (list, optional): List of blocker positions. Defaults to None.
+            tiles_dict (dict, optional): Dictionary of tile positions and colors. Defaults to None.
+
+        Returns:
+            int: The heuristic value.
+        """
         used_targets = set()
         result = 0
 
         for tile_pos in tiles:
-            min_moves = 4 # Maximum possbile number of moves for every heuristic is 3, we go 1 over
+            min_moves = 4 # Maximum possible number of moves for every heuristic is 3, we go 1 over
             best_target = None
             
             for target_pos in targets:
@@ -47,6 +76,17 @@ class MinMovesHeuristic(Heuristic):
         return result
 
     def _permutational_calculation(self, tiles: list, targets: list, blockers: list = None, tiles_dict: dict = None) -> int:
+        """Performs a permutational calculation for the heuristic.
+
+        Args:
+            tiles (list): List of tile positions.
+            targets (list): List of target positions.
+            blockers (list, optional): List of blocker positions. Defaults to None.
+            tiles_dict (dict, optional): Dictionary of tile positions and colors. Defaults to None.
+
+        Returns:
+            int: The heuristic value.
+        """
         best_result = self._init_best(len(tiles))
         
         for target_arrangement in permutations(targets):
@@ -60,45 +100,139 @@ class MinMovesHeuristic(Heuristic):
 
     @abstractmethod
     def _calculate_moves(self, tile_pos: tuple, target_pos: tuple, blockers: list = None, tiles_dict: dict = None) -> int:
+        """Calculates the number of moves between a tile and a target.
+
+        Args:
+            tile_pos (tuple): The position of the tile.
+            target_pos (tuple): The position of the target.
+            blockers (list, optional): List of blocker positions. Defaults to None.
+            tiles_dict (dict, optional): Dictionary of tile positions and colors. Defaults to None.
+
+        Returns:
+            int: The number of moves.
+        """
         pass
 
     @abstractmethod
     def _init_best(self, len_tiles) -> int:
-        """Initialize value for best result."""
+        """Initializes value for best result.
+
+        Args:
+            len_tiles (int): The number of tiles.
+
+        Returns:
+            int: The initial best result value.
+        """
         pass
 
     @abstractmethod
     def _update_partial(self, current: int, new: int) -> int:
-        """Update partial result with new value."""
+        """Updates partial result with new value.
+
+        Args:
+            current (int): The current partial result.
+            new (int): The new value to update with.
+
+        Returns:
+            int: The updated partial result.
+        """
         pass
 
     @abstractmethod
     def _aggregate_results(self, results: list) -> int:
-        """Aggregate results from all color groups."""
+        """Aggregates results from all color groups.
+
+        Args:
+            results (list): List of results from all color groups.
+
+        Returns:
+            int: The aggregated result.
+        """
         pass
 
 class SumMinMoves(MinMovesHeuristic):
     def _init_best(self, len_tiles: int) -> int:
+        """Initializes value for best result.
+
+        Args:
+            len_tiles (int): The number of tiles.
+
+        Returns:
+            int: The initial best result value.
+        """
         return 3 * len_tiles + 1
 
     def _update_partial(self, current: int, new: int) -> int:
+        """Updates partial result with new value.
+
+        Args:
+            current (int): The current partial result.
+            new (int): The new value to update with.
+
+        Returns:
+            int: The updated partial result.
+        """
         return current + new
 
     def _aggregate_results(self, results: list) -> int:
+        """Aggregates results from all color groups.
+
+        Args:
+            results (list): List of results from all color groups.
+
+        Returns:
+            int: The aggregated result.
+        """
         return sum(results)
 
 class MaxMinMoves(MinMovesHeuristic):
     def _init_best(self, len_tiles: int = None) -> int:
+        """Initializes value for best result.
+
+        Args:
+            len_tiles (int, optional): The number of tiles. Defaults to None.
+
+        Returns:
+            int: The initial best result value.
+        """
         return 4
 
     def _update_partial(self, current: int, new: int) -> int:
+        """Updates partial result with new value.
+
+        Args:
+            current (int): The current partial result.
+            new (int): The new value to update with.
+
+        Returns:
+            int: The updated partial result.
+        """
         return max(current, new)
 
     def _aggregate_results(self, results: list) -> int:
+        """Aggregates results from all color groups.
+
+        Args:
+            results (list): List of results from all color groups.
+
+        Returns:
+            int: The aggregated result.
+        """
         return max(results)
 
 class TeleportMoves:
     def _calculate_moves(self, tile_pos: tuple, target_pos: tuple, blockers: list = None, color: str = None) -> int:
+        """Calculates the number of moves between a tile and a target using teleport movement.
+
+        Args:
+            tile_pos (tuple): The position of the tile.
+            target_pos (tuple): The position of the target.
+            blockers (list, optional): List of blocker positions. Defaults to None.
+            color (str, optional): The color of the tile. Defaults to None.
+
+        Returns:
+            int: The number of moves.
+        """
         if tile_pos == target_pos:
             return 0
         if tile_pos[0] == target_pos[0] or tile_pos[1] == target_pos[1]:
@@ -115,6 +249,17 @@ class MaxMinMovesTeleport(TeleportMoves, MaxMinMoves):
 
 class BlockerMoves:
     def _calculate_moves(self, tile_pos: tuple, target_pos: tuple, blockers: list, tiles_dict: dict = None) -> int:
+        """Calculates the number of moves between a tile and a target considering blockers.
+
+        Args:
+            tile_pos (tuple): The position of the tile.
+            target_pos (tuple): The position of the target.
+            blockers (list): List of blocker positions.
+            tiles_dict (dict, optional): Dictionary of tile positions and colors. Defaults to None.
+
+        Returns:
+            int: The number of moves.
+        """
         if tile_pos == target_pos:
             return 0
             
@@ -174,6 +319,17 @@ class MaxMinMovesBlockers(BlockerMoves, MaxMinMoves):
 
 class ConflictMoves:
     def _calculate_moves(self, tile_pos: tuple, target_pos: tuple, blockers: list, tiles_dict: dict) -> int:
+        """Calculates the number of moves between a tile and a target considering other color tiles as blockers.
+
+        Args:
+            tile_pos (tuple): The position of the tile.
+            target_pos (tuple): The position of the target.
+            blockers (list): List of blocker positions.
+            tiles_dict (dict): Dictionary of tile positions and colors.
+
+        Returns:
+            int: The number of moves.
+        """
         tile_color = tiles_dict[tile_pos]
         other_tiles = [pos for pos, col in tiles_dict.items() 
                       if col != tile_color and pos != tile_pos]

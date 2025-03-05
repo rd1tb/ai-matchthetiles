@@ -14,6 +14,11 @@ from main import run_algorithm
 
 
 def parse_args():
+    """Parse command line arguments for the benchmark script.
+
+    Returns:
+        argparse.Namespace: Parsed command line arguments.
+    """
     parser = argparse.ArgumentParser(description='Run benchmarks for Match The Tiles')
     parser.add_argument('--plot', action='store_true', 
                        help='Generate plots from benchmark results')
@@ -22,6 +27,11 @@ def parse_args():
     return parser.parse_args()
 
 def run_benchmark(args=None):
+    """Runs a benchmark on various search algorithms and heuristics.
+
+    Args:
+        args: Command-line arguments or None.
+    """
     level_manager = LevelManager()
     
     # Define algorithms and heuristics
@@ -94,6 +104,14 @@ def run_benchmark(args=None):
         generate_plots(df)
     
 def generate_plots(df):
+    """Generates and saves various benchmark plots for different levels and algorithms.
+    This function creates bar plots for execution time, memory usage, states generated, 
+    solution quality, and algorithm efficiency. It also generates heatmaps of normalized metrics.
+    
+    Args:
+        df (pd.DataFrame): DataFrame containing benchmark data with columns 'level', 'algorithm', 
+                           'time', 'memory', 'states_generated', 'solution_moves', and 'optimal_moves'.
+    """
     levels = df['level'].unique()
     num_levels = len(levels)
     levels_per_plot = 6 # Number of levels to plot in each figure so that the plots are readable

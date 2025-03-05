@@ -3,6 +3,8 @@ import tracemalloc
 
 
 class MetricsCollector:
+    """Collects and reports metrics for algorithm performance."""
+
     def __init__(self):
         self.start_time = 0
         self.end_time = 0
@@ -10,19 +12,31 @@ class MetricsCollector:
         self.states_generated = 0
 
     def start(self):
+        """Starts the metrics collection."""
         self.start_time = time.time()
         tracemalloc.start()
 
     def stop(self):
+        """Stops the metrics collection."""
         self.end_time = time.time()
         tracemalloc.stop()
 
     def track_state(self):
+        """Tracks the memory usage and state generation."""
         self.states_generated += 1
         current_memory, _ = tracemalloc.get_traced_memory()
         self.max_memory = max(self.max_memory, current_memory)
 
     def get_metrics(self, solution_moves, optimal_moves):
+        """Gets the collected metrics.
+
+        Args:
+            solution_moves (int): The number of moves in the solution.
+            optimal_moves (int): The optimal number of moves.
+
+        Returns:
+            dict: A dictionary containing the collected metrics.
+        """
         return {
             "time": self.end_time - self.start_time,
             "memory": self.max_memory,
@@ -33,6 +47,12 @@ class MetricsCollector:
         }
 
     def print_metrics(self, solution_moves, optimal_moves):
+        """Prints the collected metrics.
+
+        Args:
+            solution_moves (int): The number of moves in the solution.
+            optimal_moves (int): The optimal number of moves.
+        """
         metrics = self.get_metrics(solution_moves, optimal_moves)
         time_seconds = metrics["time"]
         if time_seconds < 1:
@@ -56,4 +76,4 @@ class MetricsCollector:
         print(f"Time: {time_str}")
         print(f"Memory: {memory_str}")
         print(f"Number of states generated: {metrics['states_generated']}")
-        print(f"Diffrence from optimal solution: {metrics['difference_from_optimal']}")
+        print(f"Difference from optimal solution: {metrics['difference_from_optimal']}")

@@ -6,13 +6,26 @@ from level_manager import LevelManager
 from move import POSSIBLE_MOVES, SlideDown, SlideLeft, SlideRight, SlideUp
 
 
-class PlayGame():
+class PlayGame:
+    """Handles the interactive gameplay."""
+
     def __init__(self, level_manager: LevelManager):
+        """Initializes the PlayGame instance.
+
+        Args:
+            level_manager (LevelManager): The manager for game levels.
+        """
         self.move_history = []
         self.running = True
         self.level_manager = level_manager
 
     def play_game(self, level_index: int, level: Level):
+        """Starts the game for the specified level.
+
+        Args:
+            level_index (int): The index of the level to play.
+            level (Level): The level object containing the initial state and optimal moves.
+        """
         initial_state = deepcopy(level.initial_state)
         optimal_moves = level.optimal_moves
         self._print_board(level_index, initial_state, "initial")
@@ -71,7 +84,7 @@ class PlayGame():
                     print("No solution found, please try again.")
                     self.play_game(level_index, level)
 
-            elif user_input == "start-over" or user_input == "s" or user_input=="start" or user_input=="startover":
+            elif user_input == "start-over" or user_input == "s" or user_input == "start" or user_input == "startover":
                 self.play_game(level_index, level)
 
             elif user_input == "quit" or user_input == "q":
@@ -81,31 +94,54 @@ class PlayGame():
                 print("Invalid input. Please enter [l]eft, [r]ight, [u]p, [d]own, [h]int or [q]uit.")
 
     def get_hint(self, state: GameState):
+        """Gets a hint for the next move.
+
+        Args:
+            state (GameState): The current game state.
+
+        Returns:
+            str: The next move as a hint.
+        """
         return self._first_move_bfs(state)
 
     def _first_move_bfs(self, state: GameState):
-            problem = deepcopy(state)
-            queue = [(problem, [])]
-            visited_hashes = set()
-            visited_hashes.add(hash(problem))
+        """Performs a breadth-first search to find the first move in the solution.
 
-            while queue:
-                current_state, path = queue.pop(0)
+        Args:
+            state (GameState): The current game state.
 
-                if current_state.is_solved():
-                    return path[0]
+        Returns:
+            str: The first move in the solution path.
+        """
+        problem = deepcopy(state)
+        queue = [(problem, [])]
+        visited_hashes = set()
+        visited_hashes.add(hash(problem))
 
-                for move in POSSIBLE_MOVES:
-                    next_state = move.apply(current_state)
-                    if next_state:
-                        next_state_hash = hash(next_state)
-                        if next_state_hash not in visited_hashes:
-                            visited_hashes.add(next_state_hash)
-                            queue.append((next_state, path + [type(move).__name__]))
+        while queue:
+            current_state, path = queue.pop(0)
 
-            return None
+            if current_state.is_solved():
+                return path[0]
+
+            for move in POSSIBLE_MOVES:
+                next_state = move.apply(current_state)
+                if next_state:
+                    next_state_hash = hash(next_state)
+                    if next_state_hash not in visited_hashes:
+                        visited_hashes.add(next_state_hash)
+                        queue.append((next_state, path + [type(move).__name__]))
+
+        return None
 
     def _print_board(self, level_index: int, state: GameState, version: str):
+        """Prints the game board.
+
+        Args:
+            level_index (int): The index of the level.
+            state (GameState): The current game state.
+            version (str): The version of the board (e.g., "initial", "new").
+        """
         print(f"\nLevel {level_index} - {version} board")
         print("-" * 25)
         print(state)

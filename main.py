@@ -1,15 +1,10 @@
-from copy import deepcopy
-
-import heuristic
-import search_algorithm
 from ai_game_solver import AIGameSolver
-from benchmark_utils import plot_metrics, run_algorithm
-from game_state import GameState
-from level_manager import Level, LevelManager
+from level_manager import LevelManager
 from play_game import PlayGame
 
 
 def main():
+    """Main function to run the Match The Tiles game."""
     level_manager = LevelManager()
 
     while True:

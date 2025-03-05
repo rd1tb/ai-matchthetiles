@@ -11,12 +11,23 @@ from move import POSSIBLE_MOVES
 
 class SearchAlgorithm(ABC):
     def __init__(self, initial_state: GameState, heuristic_func: Heuristic = None):
+        """Initializes the search algorithm.
+
+        Args:
+            initial_state (GameState): The initial state of the game.
+            heuristic_func (Heuristic, optional): The heuristic function to use.
+        """
         self.initial_state = initial_state
         self.heuristic = heuristic_func
         self.metrics_collector = MetricsCollector()
 
     @abstractmethod
     def solve(self) -> Tuple[List[str], int]:
+        """Solves the game using the search algorithm.
+
+        Returns:
+            Tuple[List[str], int]: The solution path and the number of moves.
+        """
         pass
 
 class BFS(SearchAlgorithm):
@@ -47,8 +58,14 @@ class BFS(SearchAlgorithm):
 
 class IDS(SearchAlgorithm):
     """Iterative Deepening Search algorithm."""
-    
+
     def __init__(self, initial_state: GameState, optimal_moves: int = None):
+        """Initializes the IDS algorithm.
+
+        Args:
+            initial_state (GameState): The initial state of the game.
+            optimal_moves (int, optional): The optimal number of moves. Defaults to 20.
+        """
         super().__init__(initial_state)
         self.optimal_moves = optimal_moves if optimal_moves is not None else 20  # fallback to 20 if not provided
     
