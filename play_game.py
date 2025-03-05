@@ -71,7 +71,7 @@ class PlayGame:
                     next_level = self.level_manager.get_next_level(level_index)
                     if not next_level:
                         print("\nYou reached the end of the game!\nSee you again!\n")
-                        return
+                        self.running = False
                     else:
                         print("\nLoading the next level...")
                         self.play_game(next_level[0], next_level[1])
