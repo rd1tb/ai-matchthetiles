@@ -10,7 +10,7 @@ import seaborn as sns
 import heuristic
 import search_algorithm
 from level_manager import LevelManager
-from main import run_algorithm
+from benchmark_utils import run_algorithm
 
 
 def parse_args():
@@ -107,7 +107,7 @@ def generate_plots(df):
     """Generates and saves various benchmark plots for different levels and algorithms.
     This function creates bar plots for execution time, memory usage, states generated, 
     solution quality, and algorithm efficiency. It also generates heatmaps of normalized metrics.
-    
+
     Args:
         df (pd.DataFrame): DataFrame containing benchmark data with columns 'level', 'algorithm', 
                            'time', 'memory', 'states_generated', 'solution_moves', and 'optimal_moves'.
@@ -116,13 +116,36 @@ def generate_plots(df):
     num_levels = len(levels)
     levels_per_plot = 6 # Number of levels to plot in each figure so that the plots are readable
     
-    palette = sns.color_palette("tab20", 14)  # Use a palette with 20 distinct colors
+    #palette = sns.color_palette("tab20", 14)  # Use a palette with 20 distinct colors
 
     for i in range(0, num_levels, levels_per_plot):
         subset_levels = levels[i:i + levels_per_plot]
         subset_df = df.loc[df['level'].isin(subset_levels)]
         idx = i // levels_per_plot
-        
+
+        color_map = {
+            "BFS": "orange",
+            "IDS": "yellow",
+            "Greedy-SumTeleport": "#163EF5",
+            "Greedy-MaxTeleport": "#738BF9",
+            "Greedy-SumBlockers": "#A2B2FB",
+            "Greedy-MaxBlockers": "#061B80",
+            "Greedy-SumConflicts": "#D0D8FD",
+            "Greedy-MaxConflicts": "#0829C0",
+            "Astar-SumTeleport": "#057F4C",
+            "Astar-MaxTeleport": "#00EACE",
+            "Astar-SumBlockers": "#A1FBD5",
+            "Astar-MaxBlockers": "#00796B",
+            "Astar-SumConflicts": "#D0FDEA",
+            "Astar-MaxConflicts": "#009E8B",
+        }
+
+        # Generate colors based on the category
+        labels = list(color_map.keys())
+        colors = [color_map[label] for label in labels]
+
+        # Create a palette for seaborn
+        palette = sns.color_palette(colors)
         # Time comparison
         plt.figure(figsize=(14, 10))
         sns.barplot(x="level", y="time", hue="algorithm", data=subset_df, palette=palette)
