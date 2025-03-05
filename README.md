@@ -10,7 +10,7 @@ In "Match The Tiles", the goal is to move colored tiles to their matching target
 
 1. **Play Mode**: Interactive gameplay where users can solve puzzles themselves
 2. **AI Solver**: Multiple search algorithms to automatically solve puzzles
-3. **Level Management**: Support for printing, loading and validating levels
+3. **Level Management**: Support for printing, loading, and validating levels
 4. **Benchmarking**: Comprehensive performance comparison of different algorithms
 
 ## Implemented Search Algorithms
@@ -40,57 +40,83 @@ Several heuristics are implemented to guide the greedy and A\* search:
   ```
 
 ## Usage
+To run the main script:
+
+```
+python main.py
+```
+User will be prompted to choose one of 5 options:
+1. Play the game
+2. Let PC solve the game
+3. Print available levels
+4. Load a custom level
+5. Exit
 
 ### Playing the Game
 
-Run the main script and select option 1 to play:
+After user selects option 1, they will be prompted to enter a level number.   
 
-```
-python main.py
-```
-
-In play mode, use the following commands:
-- Arrow keys to select a tile
-- Enter to confirm tile selection
-- Arrow keys to choose direction (Up, Down, Left, Right)
-- Enter to confirm move
-- 'q' to quit the game
+This will enable the interactive game until the user solves the last level or chooses to quit.   
+In play mode, user can use the following commands:
+- `left` or `l` to move left
+- `right` or `r` to move right
+- `up` or `u` to move up
+- `down` or `d` to move down
+- `hint` or `h` to get a hint
+- `start` or `s` to start over
+- `quit` or `q` to quit the game
 
 ### Using the AI Solver
 
-Run the main script and select option 2 to let the AI solve a puzzle:
+After user selects option 2, they will be prompted to:
+- Enter a level number
+- Choose one algorithm to run (1-14) or all (15)
 
-```
-python main.py
-```
+This will print metrics and a solution for a chosen level and algorithm.  
+`All` option will generate comparison plots for available algorithms.
 
-You will be prompted to:
-1. Enter a level number
-2. Choose an algorithm to run (1-9)
+### Printing available levels
+
+After user selects option 3, they will be prompted to choose a board size (4-6).
+
+This will print all available levels for a board of the given size. 
+
+### Loading Custom Levels
+
+After user selects option 4, they will be prompted to enter the path of a text file containing the level to be loaded.   
+
+This will add a custom level to a level manager if the level is in the correct format and solvable. 
+The proper format of a new level:
+- Each line represents a row of the board.
+- Each character in a line represents a cell in the board.
+- Possible characters to be used:
+  - '#' for blockers
+  - '_' for empty spaces (blanks)
+  - Uppercase letters (e.g., A, B, C) for target positions
+  - Lowercase letters (e.g., a, b, c) for initial positions
+ - Optional Optimal Moves:
+   - If there are more lines than the size of the board, the line immediately following the board state can contain an integer representing the optimal number of moves.
 
 ### Running Benchmarks
 
-To run all algorithms on all levels and generate comparison plots:
+To run all algorithms on multiple available levels:
 
 ```
 python benchmark.py
 ```
 
 This will:
-1. Run all search algorithms on all available levels
-2. Collect metrics (time, memory, states generated, solution quality)
-3. Generate comparison plots in the `results` directory
+- Run all search algorithms on a predefined subset of available levels
+- Collect metrics (time, memory, states generated, solution quality) and save them to a file
 
-### Loading Custom Levels
+User can also customize the benchmark run using the following arguments:
 
-You can create and load custom levels using text files. The level format should be:
-- First line: board dimensions (rows columns)
-- Following lines: board state with:
-  - '#' for walls
-  - '.' for empty spaces
-  - Letters for colored tiles
-  - Lowercase letters for initial positions
-  - Uppercase letters for target positions
+```
+python benchmark.py --plot --levels-list idx1,idx2,idx3
+```
+
+- `--plot`: Generate comparative plots from benchmark results
+- `--levels-list`: Comma-separated list of levels' indexes to benchmark
 
 ## Metrics Collected
 
@@ -102,20 +128,6 @@ For each algorithm and level, the following metrics are collected:
 - **Solution Moves**: Number of moves in the found solution
 - **Difference from Optimal**: Difference between the found solution and the optimal solution
 
-## Project Structure
-
-- `main.py`: Main entry point with game mode selection
-- `play_game.py`: Interactive gameplay implementation
-- `ai_game_solver.py`: AI solver implementation
-- `game_state.py`: Game state representation and mechanics
-- `search_algorithm.py`: Search algorithms implementation (BFS, IDS, Greedy, A\*)
-- `heuristic.py`: Heuristic functions for greedy and A\* search
-- `level_manager.py`: Level loading and management
-- `level_validator.py`: Custom level validation
-- `level.py`: Level class implementation
-- `benchmark_utils.py`: Benchmark utilities and metrics collection
-- `benchmark.py`: Comprehensive benchmarking script
-
 ## Results
 
 The benchmark results are stored in the `results` directory, including:
@@ -124,4 +136,20 @@ The benchmark results are stored in the `results` directory, including:
 - States generated plots
 - Solution quality comparison plots
 
-Each metric is plotted both globally and per individual level for detailed analysis.
+Each metric is plotted per individual level for detailed analysis.
+
+## Project Structure
+
+- `main.py`: Main entry point with game mode selection
+- `play_game.py`: Interactive gameplay implementation
+- `ai_game_solver.py`: AI solver implementation
+- `game_state.py`: Game state and objective test representation
+- `move.py`: Handles tile movement logic
+- `level_manager.py`: Level loading and management
+- `level_validator.py`: Level validation
+- `level.py`: Level class implementation
+- `search_algorithm.py`: Search algorithms implementation (BFS, IDS, Greedy, A\*)
+- `heuristic.py`: Heuristic functions for greedy and A\* search
+- `metrics_collector.py`: Collection and storage of performance metrics
+- `benchmark_utils.py`: Benchmark utilities and metrics plotting
+- `benchmark.py`: Comprehensive benchmarking script
