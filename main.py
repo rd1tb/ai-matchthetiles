@@ -1,11 +1,13 @@
-import search_algorithm
-from level_manager import LevelManager, Level
-from game_state import GameState
 from copy import deepcopy
+
 import heuristic
-from benchmark_utils import run_algorithm, plot_metrics
+import search_algorithm
 from ai_game_solver import AIGameSolver
+from benchmark_utils import plot_metrics, run_algorithm
+from game_state import GameState
+from level_manager import Level, LevelManager
 from play_game import PlayGame
+
 
 def main():
     level_manager = LevelManager()

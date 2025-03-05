@@ -1,14 +1,17 @@
-import search_algorithm
-from level_manager import LevelManager
-from copy import deepcopy
-import heuristic
-import matplotlib.pyplot as plt
+import argparse
 import os
+from copy import deepcopy
+
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import seaborn as sns
-import argparse
-import numpy as np
+
+import heuristic
+import search_algorithm
+from level_manager import LevelManager
 from main import run_algorithm
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Run benchmarks for Match The Tiles')

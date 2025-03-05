@@ -1,10 +1,12 @@
-import search_algorithm
-from level_manager import LevelManager
-from level import Level
 import sys
 from copy import deepcopy
+
 import heuristic
-from benchmark_utils import run_algorithm, plot_metrics
+import search_algorithm
+from benchmark_utils import plot_metrics, run_algorithm
+from level import Level
+from level_manager import LevelManager
+
 
 class AIGameSolver:
     def __init__(self, level_manager: LevelManager):

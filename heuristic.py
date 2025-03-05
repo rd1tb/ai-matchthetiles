@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
-from game_state import GameState
 from itertools import permutations
+
+from game_state import GameState
+
 
 class Heuristic(ABC):
     @abstractmethod

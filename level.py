@@ -1,4 +1,6 @@
 from game_state import GameState
+
+
 class Level:
     def __init__(self, initial_state: GameState, optimal_moves: int):
         self.initial_state = initial_state

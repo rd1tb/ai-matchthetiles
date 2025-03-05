@@ -1,6 +1,8 @@
 from copy import deepcopy
-from search_algorithm import BFS
+
 from level import Level
+from search_algorithm import BFS
+
 
 class LevelValidator:
     def validate_level(self, level: Level) -> bool:

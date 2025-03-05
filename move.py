@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
+
 from game_state import GameState
+
 
 class Move(ABC):
     @abstractmethod

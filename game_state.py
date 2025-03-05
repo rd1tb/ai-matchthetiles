@@ -1,5 +1,6 @@
-from typing import Tuple, List, Dict
 from copy import deepcopy
+from typing import Dict, List, Tuple
+
 
 class GameState:
     def __init__(self, tiles: Dict[Tuple[int, int], str], targets: Dict[Tuple[int, int], str],

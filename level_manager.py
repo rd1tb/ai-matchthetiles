@@ -1,11 +1,14 @@
-import random
-from game_state import GameState
-from typing import Dict, List, Tuple, Optional
 import os
+import random
 import re
+from typing import Dict, List, Optional, Tuple
+
+from sortedcontainers import SortedDict
+
+from game_state import GameState
 from level import Level
 from level_validator import LevelValidator
-from sortedcontainers import SortedDict
+
 
 class LevelManager:
     PREDEFINED_LEVELS = {

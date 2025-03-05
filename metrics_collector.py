@@ -1,6 +1,7 @@
 import time
 import tracemalloc
 
+
 class MetricsCollector:
     def __init__(self):
         self.start_time = 0

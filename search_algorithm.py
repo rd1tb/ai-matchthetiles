@@ -1,11 +1,13 @@
+import heapq
 from abc import ABC, abstractmethod
+from math import floor
+from typing import List, Set, Tuple
+
 from game_state import GameState
 from heuristic import Heuristic
-from move import POSSIBLE_MOVES
 from metrics_collector import MetricsCollector
-from typing import Tuple, List, Set
-import heapq
-from math import floor
+from move import POSSIBLE_MOVES
+
 
 class SearchAlgorithm(ABC):
     def __init__(self, initial_state: GameState, heuristic_func: Heuristic = None):

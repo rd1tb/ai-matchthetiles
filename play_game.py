@@ -1,8 +1,10 @@
 from copy import deepcopy
+
 from game_state import GameState
 from level import Level
 from level_manager import LevelManager
-from move import SlideDown, SlideLeft, SlideRight, SlideUp, POSSIBLE_MOVES
+from move import POSSIBLE_MOVES, SlideDown, SlideLeft, SlideRight, SlideUp
+
 
 class PlayGame():
     def __init__(self, level_manager: LevelManager):

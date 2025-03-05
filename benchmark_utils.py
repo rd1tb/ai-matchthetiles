@@ -1,7 +1,9 @@
-import matplotlib.pyplot as plt
-import matplotlib.patheffects as path_effects
-import numpy as np
 import os
+
+import matplotlib.patheffects as path_effects
+import matplotlib.pyplot as plt
+import numpy as np
+
 
 def run_algorithm(algorithm_name, algorithm_instance, level_name, optimal_moves):
     print(f"\n{algorithm_name}:")
