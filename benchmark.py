@@ -14,6 +14,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Run benchmarks for Match The Tiles')
     parser.add_argument('--plot', action='store_true', 
                        help='Generate plots from benchmark results')
+    parser.add_argument('--levels-list', type=str, 
+                       help='Comma-separated list of levels to benchmark')
     return parser.parse_args()
 
 def run_benchmark(args=None):
@@ -49,9 +51,17 @@ def run_benchmark(args=None):
             deepcopy(state), heuristic.MaxMinMovesConflicts()))
     ]
     
+    # Parse levels list from arguments
+    if args.levels_list:
+        levels_list = [int(level) for level in args.levels_list.split(',')]
+    else:
+        levels_list = [6, 11, 29, 35, 41, 53, 60, 73, 116, 142, 158, 174] # Default levels list
+
+    if args.plot and len(levels_list) > 6:
+        print("Warning: The levels will be divided into multiple plots for readability.")
+    
     # Run benchmark
     all_metrics = []
-    levels_list = [6, 11, 29, 35, 41, 53, 60, 73, 116, 142, 158, 174] # Choose levels for benchmark, 4 per every board size
     for level_idx, level_list in level_manager.levels.items():
         if level_idx not in levels_list:
             continue
