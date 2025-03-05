@@ -15,10 +15,12 @@ def run_algorithm(algorithm_name, algorithm_instance, level_name, optimal_moves)
     
     algorithm_instance.metrics_collector.print_metrics(solution_moves, optimal_moves)
     
-    metrics = algorithm_instance.metrics_collector.get_metrics(solution_moves, optimal_moves)
-    metrics.update({
-        "algorithm": algorithm_name,
+    metrics = {
         "level": level_name,
+        "algorithm": algorithm_name
+    }
+    metrics.update(algorithm_instance.metrics_collector.get_metrics(solution_moves, optimal_moves))
+    metrics.update({
         "solution": solution_path
     })
 
