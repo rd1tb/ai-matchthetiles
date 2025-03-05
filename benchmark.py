@@ -72,7 +72,6 @@ def run_benchmark(args=None):
         for alg_name, alg_factory in algorithms:
             print(f"\nRunning {alg_name} on {level_name}...")
             try:
-                # Set a timeout for each algorithm (30 seconds)
                 algorithm_instance = alg_factory(level.initial_state) if alg_name != "IDS" else alg_factory(level.initial_state, level.optimal_moves)
                 metrics = run_algorithm(alg_name, algorithm_instance, level_name, level.optimal_moves)
                 all_metrics.append(metrics)
