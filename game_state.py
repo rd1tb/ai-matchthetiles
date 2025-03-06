@@ -8,7 +8,7 @@ class GameState:
 
         Args:
             tiles (Dict[Tuple[int, int], str]): The positions and colors of the tiles.
-            targets (Dict[Tuple[int, int], str]): The target positions and colors.
+            targets (Dict[Tuple[int, int], str]): The positions and colors of the targets.
             blanks (List[Tuple[int, int]]): The positions of the blank spaces.
             blockers (List[Tuple[int, int]]): The positions of the blockers.
             size (int): The size of the game board.
@@ -21,7 +21,7 @@ class GameState:
         self.move_history = []
 
     def is_solved(self) -> bool:
-        """Checks if the game is solved.
+        """Checks if all the tiles are placed in targets of corresponding color.
 
         Returns:
             bool: True if the game is solved, False otherwise.
