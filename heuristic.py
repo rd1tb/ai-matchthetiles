@@ -40,10 +40,10 @@ class MinMovesHeuristic(Heuristic):
         targets = [pos for pos, col in state.targets.items() if col == color]
 
         if len(tiles) > self.MAX_TILES_PER_COLOR:
-            return self._simple_calculation(tiles, targets, state.blockers, state.tiles)
-        return self._permutational_calculation(tiles, targets, state.blockers, state.tiles)
+            return self._simple_calculation(tiles, targets, state.blockers, state.tiles, state.targets)
+        return self._permutational_calculation(tiles, targets, state.blockers, state.tiles, state.targets)
 
-    def _simple_calculation(self, tiles: list, targets: list, blockers: list = None, tiles_dict: dict = None) -> int:
+    def _simple_calculation(self, tiles: list, targets: list, blockers: list = None, tiles_dict: dict = None, targets_dict: dict = None) -> int:
         """Performs a simple calculation for the heuristic.
 
         Args:
@@ -51,6 +51,7 @@ class MinMovesHeuristic(Heuristic):
             targets (list): List of target positions.
             blockers (list, optional): List of blocker positions. Defaults to None.
             tiles_dict (dict, optional): Dictionary of tile positions and colors. Defaults to None.
+            targets_dict (dict, optional): Dictionary of target positions and colors. Defaults to None.
 
         Returns:
             int: The heuristic value.
@@ -64,7 +65,7 @@ class MinMovesHeuristic(Heuristic):
             
             for target_pos in targets:
                 if target_pos not in used_targets:
-                    moves = self._calculate_moves(tile_pos, target_pos, blockers, tiles_dict)
+                    moves = self._calculate_moves(tile_pos, target_pos, blockers, tiles_dict, targets_dict)
                     if moves < min_moves:
                         min_moves = moves
                         best_target = target_pos
@@ -75,7 +76,7 @@ class MinMovesHeuristic(Heuristic):
             
         return result
 
-    def _permutational_calculation(self, tiles: list, targets: list, blockers: list = None, tiles_dict: dict = None) -> int:
+    def _permutational_calculation(self, tiles: list, targets: list, blockers: list = None, tiles_dict: dict = None, targets_dict: dict = None) -> int:
         """Performs a permutational calculation for the heuristic.
 
         Args:
@@ -83,6 +84,7 @@ class MinMovesHeuristic(Heuristic):
             targets (list): List of target positions.
             blockers (list, optional): List of blocker positions. Defaults to None.
             tiles_dict (dict, optional): Dictionary of tile positions and colors. Defaults to None.
+            targets_dict (dict, optional): Dictionary of target positions and colors. Defaults to None.
 
         Returns:
             int: The heuristic value.
@@ -92,14 +94,14 @@ class MinMovesHeuristic(Heuristic):
         for target_arrangement in permutations(targets):
             current = 0
             for tile_pos, target_pos in zip(tiles, target_arrangement):
-                moves = self._calculate_moves(tile_pos, target_pos, blockers, tiles_dict)
+                moves = self._calculate_moves(tile_pos, target_pos, blockers, tiles_dict, targets_dict)
                 current = self._update_partial(current, moves)
             best_result = min(best_result, current)
             
         return best_result
 
     @abstractmethod
-    def _calculate_moves(self, tile_pos: tuple, target_pos: tuple, blockers: list = None, tiles_dict: dict = None) -> int:
+    def _calculate_moves(self, tile_pos: tuple, target_pos: tuple, blockers: list = None, tiles_dict: dict = None, targets_dict = None) -> int:
         """Calculates the number of moves between a tile and a target.
 
         Args:
@@ -107,6 +109,7 @@ class MinMovesHeuristic(Heuristic):
             target_pos (tuple): The position of the target.
             blockers (list, optional): List of blocker positions. Defaults to None.
             tiles_dict (dict, optional): Dictionary of tile positions and colors. Defaults to None.
+            targets_dict (dict, optional): Dictionary of target positions and colors. Defaults to None.
 
         Returns:
             int: The number of moves.
@@ -221,14 +224,15 @@ class MaxMinMoves(MinMovesHeuristic):
         return max(results)
 
 class TeleportMoves:
-    def _calculate_moves(self, tile_pos: tuple, target_pos: tuple, blockers: list = None, color: str = None) -> int:
+    def _calculate_moves(self, tile_pos: tuple, target_pos: tuple, blockers: list = None,  tiles_dict: dict = None, targets_dict: dict = None) -> int:
         """Calculates the number of moves between a tile and a target using teleport movement.
 
         Args:
             tile_pos (tuple): The position of the tile.
             target_pos (tuple): The position of the target.
             blockers (list, optional): List of blocker positions. Defaults to None.
-            color (str, optional): The color of the tile. Defaults to None.
+            tiles_dict (dict, optional): Dictionary of tile positions and colors. Defaults to None.
+            targets_dict (dict, optional): Dictionary of target positions and colors. Defaults to None.
 
         Returns:
             int: The number of moves.
@@ -248,7 +252,7 @@ class MaxMinMovesTeleport(TeleportMoves, MaxMinMoves):
     pass
 
 class BlockerMoves:
-    def _calculate_moves(self, tile_pos: tuple, target_pos: tuple, blockers: list, tiles_dict: dict = None) -> int:
+    def _calculate_moves(self, tile_pos: tuple, target_pos: tuple, blockers: list, tiles_dict: dict = None, targets_dict: dict = None) -> int:
         """Calculates the number of moves between a tile and a target considering blockers.
 
         Args:
@@ -256,6 +260,7 @@ class BlockerMoves:
             target_pos (tuple): The position of the target.
             blockers (list): List of blocker positions.
             tiles_dict (dict, optional): Dictionary of tile positions and colors. Defaults to None.
+            targets_dict (dict, optional): Dictionary of target positions and colors. Defaults to None.
 
         Returns:
             int: The number of moves.
@@ -318,7 +323,7 @@ class MaxMinMovesBlockers(BlockerMoves, MaxMinMoves):
     pass
 
 class ConflictMoves:
-    def _calculate_moves(self, tile_pos: tuple, target_pos: tuple, blockers: list, tiles_dict: dict) -> int:
+    def _calculate_moves(self, tile_pos: tuple, target_pos: tuple, blockers: list, tiles_dict: dict, targets_dict: dict) -> int:
         """Calculates the number of moves between a tile and a target considering other color tiles as blockers.
 
         Args:
@@ -326,6 +331,7 @@ class ConflictMoves:
             target_pos (tuple): The position of the target.
             blockers (list): List of blocker positions.
             tiles_dict (dict): Dictionary of tile positions and colors.
+            targets_dict (dict): Dictionary of target positions and colors.
 
         Returns:
             int: The number of moves.
@@ -342,7 +348,12 @@ class ConflictMoves:
             max_row = max(tile_pos[1], target_pos[1])
             for other_tile in other_tiles:
                 if other_tile[0] == tile_pos[0] and min_row <= other_tile[1] <= max_row:
-                    return 2
+                    #Check if the other tile has a matching target in the same distance as the tiles are from each other
+                    other_tile_color = tiles_dict[other_tile]
+                    potential_target_row = target_pos[1] + (other_tile[1] - tile_pos[1])
+                    potential_target = (target_pos[0], potential_target_row)
+                    if potential_target not in targets_dict or targets_dict[potential_target] != other_tile_color:
+                        return 2
             return 1
 
         if tile_pos[1] == target_pos[1]:  # Same row
@@ -350,7 +361,12 @@ class ConflictMoves:
             max_col = max(tile_pos[0], target_pos[0])
             for other_tile in other_tiles:
                 if other_tile[1] == tile_pos[1] and min_col <= other_tile[0] <= max_col:
-                    return 2
+                    #Check if the other tile has a matching target in the same distance as the tiles are from each other
+                    other_tile_color = tiles_dict[other_tile]
+                    potential_target_column = target_pos[0] + (other_tile[0] - tile_pos[0])
+                    potential_target = (potential_target_column, target_pos[1])
+                    if potential_target not in targets_dict or targets_dict[potential_target] != other_tile_color:
+                        return 2
             return 1
 
         return 2
