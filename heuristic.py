@@ -12,7 +12,7 @@ class Heuristic(ABC):
 
 class MinMovesHeuristic(Heuristic):
     """Base class for heuristics that calculate moves between tiles and targets."""
-    MAX_TILES_PER_COLOR = 6
+    MAX_TILES_PER_COLOR = 5 # We limit the number of tiles in permutational calculations, otherwise greedy approach is used
 
     def evaluate(self, state: GameState) -> int:
         """Evaluates the heuristic for the given game state.
