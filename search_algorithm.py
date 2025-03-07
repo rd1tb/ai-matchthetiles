@@ -1,6 +1,5 @@
 import heapq
 from abc import ABC, abstractmethod
-from math import floor
 from typing import List, Set, Tuple
 
 from game_state import GameState
@@ -59,55 +58,55 @@ class BFS(SearchAlgorithm):
 class IDS(SearchAlgorithm):
     """Iterative Deepening Search algorithm."""
 
-    def __init__(self, initial_state: GameState, optimal_moves: int = None):
+    def __init__(self, initial_state: 'GameState', optimal_moves: int = None):
         """Initializes the IDS algorithm.
 
         Args:
             initial_state (GameState): The initial state of the game.
-            optimal_moves (int, optional): The optimal number of moves. Defaults to 20.
+            optimal_moves (int, optional): The maximum depth to search. Defaults to 15.
         """
         super().__init__(initial_state)
-        self.optimal_moves = optimal_moves if optimal_moves is not None else 20  # fallback to 20 if not provided
-    
+        self.optimal_moves = optimal_moves if optimal_moves is not None else 15
+
     def solve(self) -> Tuple[List[str], int]:
+        """Solves the game using Iterative Deepening Search."""
         self.metrics_collector.start()
-        max_depth = floor(1.5*self.optimal_moves)  # Use 1.5 * optimal_moves as max_depth to give IDS a chance to find a solution
-        
-        for depth in range(1, max_depth + 1):
-            visited_hashes = set()
-            result = self._dfs_limited(self.initial_state, [], 0, depth, visited_hashes)
+
+        for depth_limit in range(self.optimal_moves + 1):  # Iterate through depths
+            visited_hashes = set()  # Reset visited_hashes for each depth
+            result = self._dls(self.initial_state, [], 0, depth_limit, visited_hashes)
             if result:
                 self.metrics_collector.stop()
                 return result
-                
+
         self.metrics_collector.stop()
         return None, None
-    
-    def _dfs_limited(self, state: GameState, path: List[str], current_depth: int, 
-                    max_depth: int, visited_hashes: Set[int]) -> Tuple[List[str], int]:
-        """Depth-limited search helper function."""
+
+    def _dls(self, state: 'GameState', path: List[str], current_depth: int, depth_limit: int, visited_hashes: Set[int]) -> Tuple[List[str], int]:
+        """Depth-Limited Search helper function."""
         self.metrics_collector.track_state()
-        
+
         if state.is_solved():
             return path, len(path)
-            
-        if current_depth >= max_depth:
-            return None
-            
+
+        if current_depth == depth_limit:
+            return None  # Cutoff
+
         state_hash = hash(state)
         if state_hash in visited_hashes:
             return None
-            
+
         visited_hashes.add(state_hash)
-        
+
         for move in POSSIBLE_MOVES:
             next_state = move.apply(state)
             if next_state:
                 new_path = path + [type(move).__name__]
-                result = self._dfs_limited(next_state, new_path, current_depth + 1, max_depth, visited_hashes)
+                # Pass a copy of visited_hashes to avoid modifying the parent's set
+                result = self._dls(next_state, new_path, current_depth + 1, depth_limit, visited_hashes.copy())
                 if result:
                     return result
-                    
+
         return None
 
 class GreedySearch(SearchAlgorithm):
