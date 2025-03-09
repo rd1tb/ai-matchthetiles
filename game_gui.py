@@ -14,8 +14,8 @@ from move import POSSIBLE_MOVES, SlideDown, SlideLeft, SlideRight, SlideUp
 pygame.init()
 
 # Constants
-WINDOW_WIDTH = 650
-WINDOW_HEIGHT = 800
+WINDOW_WIDTH = 700
+WINDOW_HEIGHT = 600
 FPS = 60
 CELL_PADDING = 0
 HINT_DURATION = 2500  # 4 seconds in milliseconds
@@ -52,14 +52,15 @@ class GameGUI:
         self.clock = pygame.time.Clock()
         self.level_manager = LevelManager()
         self.font = pygame.font.SysFont('Arial', 24)
-        self.title_font = pygame.font.SysFont('Arial', 32, bold=True)  # Added bold title font
-        self.small_font = pygame.font.SysFont('Arial', 18)
+        self.title_font = pygame.font.SysFont('Arial', 32, bold=True)
+        self.small_font = pygame.font.SysFont('Arial', 20)
         self.board_size = 4
         self.filtered_levels = []
         self.filter_levels_by_size()
         self.current_level_index = 1
         self.current_level = None
         self.current_state = None
+        self.state_history = []
         self.optimal_moves = 0
         self.moves_count = 0
         self.hint_arrow = None
@@ -127,6 +128,8 @@ class GameGUI:
                 move_made = bool(next_state)
                 
             if move_made:
+                # Save current state before applying the move
+                self.state_history.append(deepcopy(self.current_state))
                 self.current_state = next_state
                 self.moves_count += 1
                 
@@ -145,30 +148,81 @@ class GameGUI:
             # Check button clicks
             mouse_pos = pygame.mouse.get_pos()
             
-            button_y = self.window_height - 80  # Lowered buttons position
-            button_width = 120  # Wider buttons
-            usable_width = self.window_width - 2 * SIDE_MARGIN
-            button_spacing = (usable_width - 4 * button_width) / 5
+            button_width = 130
+            button_height = 40
+            button_spacing = 15
+            right_panel_x = self.window_width - 160
+        
+            button_y = 105  # Starting Y position for buttons
+            
+            # Reset level button
+            if self.is_point_in_rect(mouse_pos, (right_panel_x, button_y, button_width, button_height)):
+                self.restart_level()
             
             # Hint button
-            hint_x = SIDE_MARGIN + button_spacing
-            if self.is_point_in_rect(mouse_pos, (hint_x, button_y, button_width, 40)):
+            button_y += button_height + button_spacing
+            if self.is_point_in_rect(mouse_pos, (right_panel_x, button_y, button_width, button_height)):
                 self.show_hint()
-                
-            # Restart button
-            restart_x = hint_x + button_width + button_spacing
-            if self.is_point_in_rect(mouse_pos, (restart_x, button_y, button_width, 40)):
-                self.restart_level()
-                
+            
+            # Undo button
+            button_y += button_height + button_spacing
+            if self.is_point_in_rect(mouse_pos, (right_panel_x, button_y, button_width, button_height)):
+                self.undo_move()
+            
+            # Directional buttons
+            button_y += button_height + (button_spacing - 5) * 2
+            arrow_size = 40
+            arrow_center_x = right_panel_x + button_width // 2
+            
+            # Up arrow
+            if self.is_point_in_rect(mouse_pos, (arrow_center_x - arrow_size // 2, button_y, arrow_size, arrow_size)):
+                next_state = SlideUp().apply(self.current_state)
+                if next_state:
+                    self.state_history.append(deepcopy(self.current_state))
+                    self.current_state = next_state
+                    self.moves_count += 1
+            
+            button_y += arrow_size + button_spacing - 5
+            # Left arrow
+            if self.is_point_in_rect(mouse_pos, (arrow_center_x - arrow_size - button_spacing - 5, button_y, arrow_size, arrow_size)):
+                next_state = SlideLeft().apply(self.current_state)
+                if next_state:
+                    self.state_history.append(deepcopy(self.current_state))
+                    self.current_state = next_state
+                    self.moves_count += 1
+            
+            # Right arrow
+            if self.is_point_in_rect(mouse_pos, (arrow_center_x + button_spacing + 5, button_y, arrow_size, arrow_size)):
+                next_state = SlideRight().apply(self.current_state)
+                if next_state:
+                    self.state_history.append(deepcopy(self.current_state))
+                    self.current_state = next_state
+                    self.moves_count += 1
+            
+            # Down arrow
+            button_y += arrow_size + button_spacing - 5
+            if self.is_point_in_rect(mouse_pos, (arrow_center_x - arrow_size // 2, button_y, arrow_size, arrow_size)):
+                next_state = SlideDown().apply(self.current_state)
+                if next_state:
+                    self.state_history.append(deepcopy(self.current_state))
+                    self.current_state = next_state
+                    self.moves_count += 1
+            
+            if self.current_state.is_solved():
+                self.draw_game()
+                pygame.display.flip()
+                pygame.time.delay(100)
+                self.show_win_message()
+            
             # Main Menu button
-            menu_x = restart_x + button_width + button_spacing
-            if self.is_point_in_rect(mouse_pos, (menu_x, button_y, button_width, 40)):
+            button_y += arrow_size + button_spacing * 2
+            if self.is_point_in_rect(mouse_pos, (right_panel_x, button_y, button_width, button_height)):
                 self.in_game = False
                 self.show_main_menu()
-                
+            
             # Exit button
-            exit_x = menu_x + button_width + button_spacing
-            if self.is_point_in_rect(mouse_pos, (exit_x, button_y, button_width, 40)):
+            button_y += button_height + button_spacing
+            if self.is_point_in_rect(mouse_pos, (right_panel_x, button_y, button_width, button_height)):
                 self.running = False
             
     def show_main_menu(self):
@@ -196,17 +250,20 @@ class GameGUI:
             'Level: ',
             level_list,
             onchange = self.change_level,
-            default = 1,
             selection_option_font_size=25
         )
 
         # Buttons
-        self.menu.add.button('Play Game', self._start_game)
+        self.menu.add.button('Play Game', self.start_game)
         self.menu.add.button('Exit', pygame_menu.events.EXIT)
     
-    def _start_game(self):
-        """Wrapper for the start_game method."""
-        self.start_game()
+    def start_game(self):
+        """Start the game with the selected level."""
+        self.current_level = self.level_manager.get_level(self.current_level_index)
+        self.current_state = deepcopy(self.current_level.initial_state)
+        self.state_history = []  # Clear state history when starting a new game
+        self.optimal_moves = self.current_level.optimal_moves
+        self.moves_count = 0
         self.in_game = True
     
     def filter_levels_by_size(self):
@@ -252,9 +309,9 @@ class GameGUI:
         # Calculate grid size and cell size
         board_size = self.current_state.size
         # Adjust grid_size to account for side margins
-        grid_size = min(self.window_width - 2 * SIDE_MARGIN, self.window_height - 150)
+        grid_size = min(self.window_width - 2 * SIDE_MARGIN - 150, self.window_height - 150)  # Reserve space for buttons
         cell_size = grid_size // board_size
-        start_x = SIDE_MARGIN + (self.window_width - 2 * SIDE_MARGIN - grid_size) // 2
+        start_x = SIDE_MARGIN
         start_y = 100
         
         # Draw header
@@ -269,9 +326,8 @@ class GameGUI:
         level_x = (self.window_width - level_surface.get_width()) // 2
         self.screen.blit(level_surface, (level_x, 20))
         # Place moves counter on top right
-        self.screen.blit(moves_surface, (self.window_width - moves_surface.get_width() - 20, 20))
+        self.screen.blit(moves_surface, (self.window_width/2 - moves_surface.get_width(), WINDOW_HEIGHT-40))
         
-
         THEME_BLUE_BACKGROUND = (225, 239, 252)
         THEME_BLUE_ACCENT = (30, 56, 117)
         THEME_BLUE_BORDER = (30, 56, 117)
@@ -345,45 +401,86 @@ class GameGUI:
             else:
                 pygame.draw.circle(self.screen, WHITE, circle_center, circle_radius)
         
-        # Draw buttons with theme colors
-        button_y = self.window_height - 80
-        button_width = 120
+        # Draw buttons on the right side
+        button_width = 130
         button_height = 40
+        button_spacing = 15
+        right_panel_x = self.window_width - 160
+    
+        button_y = 105  # Starting Y position for buttons
         
-        # Calculate button positions to distribute evenly
-        usable_width = self.window_width - 2 * SIDE_MARGIN
-        button_spacing = (usable_width - 4 * button_width) / 5
+        # Reset level button
+        reset_rect = pygame.Rect(right_panel_x, button_y, button_width, button_height)
+        pygame.draw.rect(self.screen, THEME_BLUE_ACCENT, reset_rect, border_radius=5)
+        pygame.draw.rect(self.screen, THEME_BLUE_BORDER, reset_rect, width=2, border_radius=5)
+        reset_text = self.small_font.render("Restart level", True, WHITE)
+        self.screen.blit(reset_text, (reset_rect.centerx - reset_text.get_width() // 2, reset_rect.centery - reset_text.get_height() // 2))
         
-        hint_x = SIDE_MARGIN + button_spacing
-        restart_x = hint_x + button_width + button_spacing
-        menu_x = restart_x + button_width + button_spacing
-        exit_x = menu_x + button_width + button_spacing
-        
-        hint_rect = pygame.Rect(hint_x, button_y, button_width, button_height)
-        restart_rect = pygame.Rect(restart_x, button_y, button_width, button_height)
-        menu_rect = pygame.Rect(menu_x, button_y, button_width, button_height)
-        exit_rect = pygame.Rect(exit_x, button_y, button_width, button_height)
-        
-        # Use theme colors for buttons
+        # Hint button
+        button_y += button_height + button_spacing
+        hint_rect = pygame.Rect(right_panel_x, button_y, button_width, button_height)
         pygame.draw.rect(self.screen, THEME_BLUE_ACCENT, hint_rect, border_radius=5)
-        pygame.draw.rect(self.screen, THEME_BLUE_ACCENT, restart_rect, border_radius=5)
-        pygame.draw.rect(self.screen, THEME_BLUE_ACCENT, menu_rect, border_radius=5)
-        pygame.draw.rect(self.screen, THEME_BLUE_ACCENT, exit_rect, border_radius=5)
-        
-        # Add button highlights
         pygame.draw.rect(self.screen, THEME_BLUE_BORDER, hint_rect, width=2, border_radius=5)
-        pygame.draw.rect(self.screen, THEME_BLUE_BORDER, restart_rect, width=2, border_radius=5)
-        pygame.draw.rect(self.screen, THEME_BLUE_BORDER, menu_rect, width=2, border_radius=5)
-        pygame.draw.rect(self.screen, THEME_BLUE_BORDER, exit_rect, width=2, border_radius=5)
-        
         hint_text = self.small_font.render("Hint", True, WHITE)
-        restart_text = self.small_font.render("Restart", True, WHITE)
-        menu_text = self.small_font.render("Main Menu", True, WHITE)
-        exit_text = self.small_font.render("Exit", True, WHITE)
-        
         self.screen.blit(hint_text, (hint_rect.centerx - hint_text.get_width() // 2, hint_rect.centery - hint_text.get_height() // 2))
-        self.screen.blit(restart_text, (restart_rect.centerx - restart_text.get_width() // 2, restart_rect.centery - restart_text.get_height() // 2))
+        
+        # Undo button
+        button_y += button_height + button_spacing
+        undo_rect = pygame.Rect(right_panel_x, button_y, button_width, button_height)
+        pygame.draw.rect(self.screen, THEME_BLUE_ACCENT, undo_rect, border_radius=5)
+        pygame.draw.rect(self.screen, THEME_BLUE_BORDER, undo_rect, width=2, border_radius=5)
+        undo_text = self.small_font.render("Undo", True, WHITE)
+        self.screen.blit(undo_text, (undo_rect.centerx - undo_text.get_width() // 2, undo_rect.centery - undo_text.get_height() // 2))
+        
+        # Directional buttons
+        # Up arrow
+        button_y += button_height + (button_spacing - 5) * 2
+        arrow_size = 40
+        arrow_center_x = right_panel_x + button_width // 2
+        
+        up_rect = pygame.Rect(arrow_center_x - arrow_size // 2, button_y, arrow_size, arrow_size)
+        pygame.draw.rect(self.screen, THEME_BLUE_ACCENT, up_rect, border_radius=5)
+        pygame.draw.rect(self.screen, THEME_BLUE_BORDER, up_rect, width=2, border_radius=5)
+        up_text = self.small_font.render("^", True, WHITE)
+        self.screen.blit(up_text, (up_rect.centerx - up_text.get_width() // 2, up_rect.centery - up_text.get_height() // 2))
+        
+        # Left, Right arrows (side by side)
+        button_y += arrow_size + button_spacing - 5
+        left_rect = pygame.Rect(arrow_center_x - arrow_size - button_spacing - 5, button_y, arrow_size, arrow_size)
+        right_rect = pygame.Rect(arrow_center_x + button_spacing + 5, button_y, arrow_size, arrow_size)
+        
+        pygame.draw.rect(self.screen, THEME_BLUE_ACCENT, left_rect, border_radius=5)
+        pygame.draw.rect(self.screen, THEME_BLUE_BORDER, left_rect, width=2, border_radius=5)
+        left_text = self.small_font.render("<", True, WHITE)
+        self.screen.blit(left_text, (left_rect.centerx - left_text.get_width() // 2, left_rect.centery - left_text.get_height() // 2))
+        
+        pygame.draw.rect(self.screen, THEME_BLUE_ACCENT, right_rect, border_radius=5)
+        pygame.draw.rect(self.screen, THEME_BLUE_BORDER, right_rect, width=2, border_radius=5)
+        right_text = self.small_font.render(">", True, WHITE)
+        self.screen.blit(right_text, (right_rect.centerx - right_text.get_width() // 2, right_rect.centery - right_text.get_height() // 2))
+        
+        # Down arrow
+        button_y += arrow_size + button_spacing - 5
+        down_rect = pygame.Rect(arrow_center_x - arrow_size // 2, button_y, arrow_size, arrow_size)
+        pygame.draw.rect(self.screen, THEME_BLUE_ACCENT, down_rect, border_radius=5)
+        pygame.draw.rect(self.screen, THEME_BLUE_BORDER, down_rect, width=2, border_radius=5)
+        down_text = self.small_font.render("v", True, WHITE)
+        self.screen.blit(down_text, (down_rect.centerx - down_text.get_width() // 2, down_rect.centery - down_text.get_height() // 2))
+        
+        # Main Menu button
+        button_y += arrow_size + button_spacing * 2
+        menu_rect = pygame.Rect(right_panel_x, button_y, button_width, button_height)
+        pygame.draw.rect(self.screen, THEME_BLUE_ACCENT, menu_rect, border_radius=5)
+        pygame.draw.rect(self.screen, THEME_BLUE_BORDER, menu_rect, width=2, border_radius=5)
+        menu_text = self.small_font.render("Main Menu", True, WHITE)
         self.screen.blit(menu_text, (menu_rect.centerx - menu_text.get_width() // 2, menu_rect.centery - menu_text.get_height() // 2))
+        
+        # Exit button
+        button_y += button_height + button_spacing
+        exit_rect = pygame.Rect(right_panel_x, button_y, button_width, button_height)
+        pygame.draw.rect(self.screen, THEME_BLUE_ACCENT, exit_rect, border_radius=5)
+        pygame.draw.rect(self.screen, THEME_BLUE_BORDER, exit_rect, width=2, border_radius=5)
+        exit_text = self.small_font.render("Exit", True, WHITE)
         self.screen.blit(exit_text, (exit_rect.centerx - exit_text.get_width() // 2, exit_rect.centery - exit_text.get_height() // 2))
         
         # Draw hint arrow if active
@@ -517,11 +614,26 @@ class GameGUI:
 
         return None
     
+    def undo_move(self):
+        """Undo the last move if there is a move history."""
+        if self.state_history:
+            # Restore the previous state
+            self.current_state = self.state_history.pop()
+            # Decrease the move counter
+            if self.moves_count > 0:
+                self.moves_count -= 1
+
     def restart_level(self):
         """Restart the current level."""
         self.current_state = deepcopy(self.current_level.initial_state)
         self.moves_count = 0
-    
+
+    def restart_level(self):
+        """Restart the current level."""
+        self.current_state = deepcopy(self.current_level.initial_state)
+        self.state_history = []  # Clear state history when restarting
+        self.moves_count = 0
+
     def show_win_message(self):
         """Show a win message and load the next level."""
         self.in_game = False
@@ -601,6 +713,7 @@ class GameGUI:
         self.current_state = deepcopy(self.current_level.initial_state)
         self.optimal_moves = self.current_level.optimal_moves
         self.moves_count = 0
+        self.state_history = []
         self.in_game = True
     
     def return_to_main_menu(self):
