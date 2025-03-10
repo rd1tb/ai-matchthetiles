@@ -160,6 +160,11 @@ class GameGUI:
                     # Generate hint
                     hint_info = self.game_controller.show_hint()
                     self.hint_thinking = False
+                    
+                    # If no hint is available, set the no_hint flag to display the message
+                    if hint_info and hint_info.get('no_hint'):
+                        self.game_controller.no_hint_available = True
+                        self.game_controller.no_hint_start_time = pygame.time.get_ticks()
                     return
         
         # If not processing a hint request, handle other events
@@ -264,7 +269,7 @@ class GameGUI:
                     # Draw final state before showing completion dialog
                     self.draw_ai_game()
                     pygame.display.flip()
-                    pygame.time.delay(1000)  # Show final state for 1 second
+                    pygame.time.delay(300)  # Show final state for 300 milliseconds
                     self.show_ai_complete_message()
         else:
             self.draw_game()
@@ -279,6 +284,9 @@ class GameGUI:
                 'direction': self.game_controller.hint_direction,
                 'start_time': self.game_controller.hint_start_time
             }
+        
+        # Pass the game controller reference to the renderer to access no_hint state    
+        self.player_renderer.game_controller = self.game_controller
             
         return self.player_renderer.draw(
             self.game_controller.current_state,

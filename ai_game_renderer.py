@@ -34,31 +34,26 @@ class AIGameRenderer(BoardRenderer):
         board_width = board_size * cell_size
         board_center_x = start_x + board_width // 2
         
-        # Draw header - centered above the board
+        # Draw level title centered above the board
         level_text = f"Level {level_index} - AI Mode"
-        
-        # Use larger, bold font for level title
         level_surface = self.fonts['title'].render(level_text, True, BLACK)
-        
-        # Center the level title above the board
         level_x = board_center_x - level_surface.get_width() // 2
         self.screen.blit(level_surface, (level_x, 20))
         
-        # Determine what text to display under the board
-        if ai_thinking:
-            # Show thinking message when algorithm is running
-            progress_text = "AI is thinking..."
-            progress_surface = self.fonts['regular'].render(progress_text, True, BLACK)
-            progress_x = board_center_x - progress_surface.get_width() // 2
-            self.screen.blit(progress_surface, (progress_x, 60))
-        elif solution_info and solution_info.get('path'):
-            # Show progress if solution is being executed
+        # Draw move counter in top left if solution is being executed
+        if solution_info and solution_info.get('path'):
             path = solution_info['path']
             step = solution_info['step']
-            progress_text = f"Moves {step}/{len(path)}"
+            progress_text = f"Moves: {step}/{len(path)}"
             progress_surface = self.fonts['regular'].render(progress_text, True, BLACK)
-            progress_x = board_center_x - progress_surface.get_width() // 2
-            self.screen.blit(progress_surface, (progress_x, 60))
+            self.screen.blit(progress_surface, (start_x, 60))
+        
+        # Draw "AI is thinking..." in top right if algorithm is running
+        if ai_thinking:
+            thinking_text = "AI is thinking..."
+            thinking_surface = self.fonts['regular'].render(thinking_text, True, BLACK)
+            thinking_x = start_x + board_width - thinking_surface.get_width()
+            self.screen.blit(thinking_surface, (thinking_x, 60))
         
         # Draw board
         self.draw_board(state, start_x, start_y)

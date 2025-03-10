@@ -3,7 +3,6 @@ from copy import deepcopy
 from move import POSSIBLE_MOVES, SlideDown, SlideLeft, SlideRight, SlideUp
 import search_algorithm
 import heuristic
-from metrics_collector import MetricsCollector
 
 class GameController:
     """Handles game logic and state for both player and AI modes"""
@@ -31,6 +30,9 @@ class GameController:
         # Hint-related attributes
         self.hint_direction = None
         self.hint_start_time = 0
+        self.no_hint_available = False
+        self.no_hint_start_time = 0
+        self.NO_HINT_DURATION = 3000  # Display "No hint available" for 3 seconds
         
         self.algorithm_metrics = None
         
@@ -101,7 +103,7 @@ class GameController:
         """Generate a hint for the next move
         
         Returns:
-            dict: Hint information or None if no hint found
+            dict: Hint information or dict with 'no_hint' flag if no hint found
         """
         hint_direction = self._first_move_bfs(self.current_state)
         if hint_direction:
@@ -111,7 +113,12 @@ class GameController:
                 'direction': hint_direction,
                 'start_time': self.hint_start_time
             }
-        return None
+        else:
+            # Return a special flag indicating no hint is available
+            return {
+                'no_hint': True,
+                'start_time': pygame.time.get_ticks()
+            }
         
     def _first_move_bfs(self, state):
         """Performs a breadth-first search to find the first move in the solution
@@ -216,8 +223,8 @@ class GameController:
         if self.solution_path and self.current_solution_step < len(self.solution_path):
             current_time = pygame.time.get_ticks()
             
-            # Only apply the next step if enough time has passed
-            if current_time - self.last_step_time > 600:  # 600 milliseconds per step
+            # Only apply the next step if enough time has passed - REDUCED FROM 800 to 300 ms
+            if current_time - self.last_step_time > 300:  # 300 milliseconds per step
                 move_name = self.solution_path[self.current_solution_step]
                 # Find the move class matching the name
                 for move in POSSIBLE_MOVES:
@@ -306,8 +313,9 @@ class GameController:
             # Check each UI element
             for element_name, rect in ui_elements.items():
                 if rect.collidepoint(mouse_pos):
-                    if element_name == 'restart':
+                    if element_name == 'restart' or element_name == 'no_hint_restart':
                         self.restart_level()
+                        self.no_hint_available = False  # Reset the no hint flag when restarting
                     elif element_name == 'hint':
                         self.show_hint()
                     elif element_name == 'undo':
