@@ -1,0 +1,235 @@
+import pygame
+import pygame_menu
+from game_constants import *
+
+class MenuManager:
+    """Handles all menu functionality for the game"""
+    
+    def __init__(self, screen_size, level_manager, on_start_game, on_start_ai, on_change_board_size, on_change_level, on_exit):
+        """Initialize menu manager with callbacks
+        
+        Args:
+            screen_size: (width, height) of the screen
+            level_manager: LevelManager instance
+            on_start_game: Callback when Start Game button is pressed
+            on_start_ai: Callback when AI Game button is pressed
+            on_change_board_size: Callback when board size is changed
+            on_change_level: Callback when level is changed
+            on_exit: Callback when Exit button is pressed
+        """
+        self.screen_width, self.screen_height = screen_size
+        self.level_manager = level_manager
+        self.on_start_game = on_start_game
+        self.on_start_ai = on_start_ai
+        self.on_change_board_size = on_change_board_size
+        self.on_change_level = on_change_level
+        self.on_exit = on_exit
+        
+        # Create custom theme
+        self.custom_theme = pygame_menu.themes.THEME_BLUE
+        self.custom_theme.widget_font_size = 30
+        self.custom_theme.widget_margin = (20, 15)
+        
+        # Current menu being displayed
+        self.current_menu = None
+        self.level_selector = None
+        
+    def create_main_menu(self, filtered_levels, current_board_size):
+        """Create and show the main menu
+        
+        Args:
+            filtered_levels: List of (level_name, level_id) tuples
+            current_board_size: Currently selected board size
+        """
+        self.current_menu = pygame_menu.Menu(
+            'Match The Tiles', 
+            self.screen_width, 
+            self.screen_height,
+            theme=self.custom_theme
+        )
+        
+        # Board size selector
+        size_selector = self.current_menu.add.selector(
+            'Board Size: ',
+            [('4x4', 4), ('5x5', 5), ('6x6', 6)],
+            onchange=self.on_change_board_size,
+            style=pygame_menu.widgets.SELECTOR_STYLE_FANCY
+        )
+        
+        # Set current board size
+        for i, (_, size) in enumerate([('4x4', 4), ('5x5', 5), ('6x6', 6)]):
+            if size == current_board_size:
+                size_selector.set_value(i)
+                break
+        
+        # Level selector as dropdown
+        self.level_selector = self.current_menu.add.dropselect(
+            'Level: ',
+            filtered_levels,
+            onchange=self.on_change_level,
+            selection_option_font_size=25
+        )
+
+        # Buttons
+        self.current_menu.add.button('Play Game', self.on_start_game)
+        self.current_menu.add.button('Let AI Play', self.on_start_ai)
+        self.current_menu.add.button('Exit', self.on_exit)
+        
+        return self.current_menu
+        
+    def create_win_dialog(self, moves_count, optimal_moves, next_level_info=None, on_next_level=None, on_main_menu=None):
+        """Create and return a win dialog
+        
+        Args:
+            moves_count: Number of moves made
+            optimal_moves: Optimal number of moves
+            next_level_info: Information about the next level, or None if at the end
+            on_next_level: Callback for Next Level button
+            on_main_menu: Callback for Main Menu button
+            
+        Returns:
+            win_dialog: The created win dialog menu
+        """
+        if next_level_info:
+            width = 400
+            height = 400
+            theme = pygame_menu.themes.THEME_GREEN
+        else:
+            width = 600
+            height = 400
+            theme = pygame_menu.themes.THEME_DARK
+
+        win_dialog = pygame_menu.Menu(
+            'You Won!', 
+            width, 
+            height,
+            theme=theme
+        )
+        
+        if moves_count == optimal_moves:
+            win_dialog.add.label(f"Perfect Score: {moves_count} moves!")
+        else:
+            win_dialog.add.label(f"Solution found in {moves_count} moves.")
+            win_dialog.add.label(f"Perfect score is {optimal_moves} moves.")
+
+        if next_level_info:
+            # Add Next Level as the first interactive widget
+            win_dialog.add.button('Next Level', on_next_level)
+        else:
+            win_dialog.add.label("You reached the end of the game!")
+        
+        win_dialog.add.button('Main Menu', on_main_menu)
+        win_dialog.add.button('Exit', pygame_menu.events.EXIT)
+        
+        return win_dialog
+        
+    def create_ai_complete_dialog(self, solution_path_length, optimal_moves, metrics, on_return_to_game, on_next_level=None, on_main_menu=None):
+        """Create and return dialog for when AI completes a level
+        
+        Args:
+            solution_path_length: Length of the solution path found
+            optimal_moves: Optimal number of moves
+            metrics: Dictionary with algorithm performance metrics
+            on_return_to_game: Callback to return to the AI game
+            on_next_level: Callback for Next Level button, or None if no next level
+            on_main_menu: Callback to return to main menu
+            
+        Returns:
+            dialog: The created dialog menu
+        """
+        width = 600
+        height = 500
+        
+        # Use the default gray theme
+        ai_theme = pygame_menu.themes.THEME_DEFAULT.copy()
+        ai_theme.widget_font_size = 26  # Set larger font size for all widgets
+        
+        dialog = pygame_menu.Menu(
+            'AI Solved It!', 
+            width, 
+            height,
+            theme=ai_theme,
+            columns=1,
+            rows=15  # Increased number of rows to accommodate all widgets
+        )
+        
+        # Solution info
+        dialog.add.label(f"Solution found in {solution_path_length} moves.")
+        
+        if optimal_moves:
+            if solution_path_length == optimal_moves:
+                dialog.add.label(f"Perfect score achieved!")
+            else:
+                dialog.add.label(f"Optimal solution is {optimal_moves} moves.")
+                dialog.add.label(f"Difference: +{solution_path_length - optimal_moves} moves")
+        
+        # Add metrics section if available
+        if metrics:
+            dialog.add.vertical_margin(20)
+            dialog.add.label("Algorithm Performance Metrics:")
+            
+            # Format execution time
+            time_seconds = metrics["time"]
+            if time_seconds < 1:
+                time_str = f"{time_seconds * 1000:.2f} milliseconds"
+            else:
+                time_str = f"{time_seconds:.2f} seconds"
+            dialog.add.label(f"Execution time: {time_str}")
+            
+            # Format memory usage
+            memory_bytes = metrics["memory"]
+            if memory_bytes < 1024:
+                memory_str = f"{memory_bytes} B"
+            elif memory_bytes < 1024 ** 2:
+                memory_str = f"{memory_bytes / 1024:.2f} KB"
+            else:
+                memory_str = f"{memory_bytes / 1024 ** 2:.2f} MB"
+            dialog.add.label(f"Memory usage: {memory_str}")
+            
+            # Other metrics
+            dialog.add.label(f"States generated: {metrics['states_generated']}")
+        
+        dialog.add.vertical_margin(30)
+        
+        # Add buttons with default styling
+        if on_next_level:
+            dialog.add.button('Next Level', on_next_level)
+        
+        dialog.add.button('Try Another Algorithm', on_return_to_game)
+        dialog.add.button('Main Menu', on_main_menu)
+        dialog.add.button('Exit', pygame_menu.events.EXIT)
+        
+        # If next level is available, select it by default
+        if on_next_level:
+            # Find the first selectable widget
+            for widget in dialog.get_widgets():
+                if widget.is_selectable:
+                    dialog.select_widget(widget)
+                    break
+        
+        return dialog
+        
+    def update_level_selector(self, filtered_levels):
+        """Update the level selector with new levels
+        
+        Args:
+            filtered_levels: New list of (level_name, level_id) tuples
+        """
+        if self.level_selector:
+            self.level_selector.update_items(filtered_levels)
+            
+    def handle_events(self, events):
+        """Handle events for the current menu
+        
+        Args:
+            events: List of pygame events
+            
+        Returns:
+            bool: True if events were handled by the menu
+        """
+        if self.current_menu and self.current_menu.is_enabled():
+            self.current_menu.update(events)
+            self.current_menu.draw(pygame.display.get_surface())
+            pygame.display.update()
+            return True
+        return False
