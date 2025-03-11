@@ -8,15 +8,15 @@ In "Match The Tiles", the goal is to move colored tiles to their matching target
 
 ## Features
 
-1. **Play Mode**: Interactive gameplay where users can solve puzzles themselves
-2. **AI Solver**: Multiple search algorithms to automatically solve puzzles
-3. **Level Management**: Support for printing, loading, and validating levels
-4. **Benchmarking**: Comprehensive performance comparison of different algorithms
+1. **Play Mode**: Interactive gameplay where users can solve puzzles themselves.
+2. **AI Solver**: Multiple search algorithms to automatically solve puzzles.
+3. **Level Management**: Support for loading and validating levels.
+4. **Benchmarking**: Comprehensive performance comparison of different algorithms.
 
 ## Implemented Search Algorithms
 
 1. **Breadth-First Search (BFS)**: Explores all possible states at the current depth before moving to the next depth level.
-2. **Iterative Deepening Search (IDS)**: Combines depth-first search with increasing depth limits to find the optimal solution.
+2. **Iterative Deepening Search (IDS)**: Depth-limited version of DFS is run repeatedly witn increasing depth limit until the goal is found.
 3. **Greedy Best-First Search**: Uses various heuristics to guide the search towards promising states.
 4. **A\***: Uses a combination of path cost and heuristics to find the optimal solution efficiently.
 
@@ -40,52 +40,31 @@ Several heuristics are implemented to guide the greedy and A\* search:
   ```
 
 ## Usage
-To run the main script:
+To run the game:
 
 ```
 python main.py
 ```
-User will be prompted to choose one of 5 options:
-1. Play the game
-2. Let PC solve the game
-3. Print available levels
-4. Load a custom level
-5. Exit
+A main game menu appears with multiple options.   
+It's possible to choose a board size and level for either user or AI game play. If no choice is made, first level is loaded. User can also load a custom level from a text file. 
 
-### Playing the Game
+### Play Game
 
-After user selects option 1, they will be prompted to enter a level number.   
+The user can use the on-screen or keyboards' arrows to move.   
+Restart level reloads the same level, hint provides a hint for the next move, undo reverts the last move.
+The moves counter appears in the top left of the screen, showing also the optimal moves' number.
+After solving the puzzle, the user will be prompted to either choose the next level, go back to the main menu or exit.
+The game lasts until the user solves the last level or chooses to quit.
 
-This will enable the interactive game until the user solves the last level or chooses to quit.   
-In play mode, user can use the following commands:
-- `left` or `l` to move left
-- `right` or `r` to move right
-- `up` or `u` to move up
-- `down` or `d` to move down
-- `hint` or `h` to get a hint
-- `start` or `s` to start over
-- `quit` or `q` to quit the game
+### Let AI play
 
-### Using the AI Solver
+In AI mode it's possbile to choose out of 14 possible algorithms/heuristics combinations.   
+First, AI solves the puzzle and then plays out the moves on the screen. After puzzle is solved, the metrics, such as time, memory consumption and number of states generated are shown. 
+From there it's possible to go back to the same level to check another algorithm, load next level, go back to main menu or exit.
 
-After user selects option 2, they will be prompted to:
-- Enter a level number
-- Choose one algorithm to run (1-14) or all (15)
+### Load Custom Level
 
-This will print metrics and a solution for a chosen level and algorithm.  
-`All` option will generate comparison plots for available algorithms.
-
-### Printing available levels
-
-After user selects option 3, they will be prompted to choose a board size (4-6).
-
-This will print all available levels for a board of the given size. 
-
-### Loading Custom Levels
-
-After user selects option 4, they will be prompted to enter the path of a text file containing the level to be loaded.   
-
-This will add a custom level to a level manager if the level is in the correct format and solvable. 
+To load custom level, user will be prompted to type in a path to a file containing the custom level.  
 The proper format of a new level:
 - Each line represents a row of the board.
 - Each character in a line represents a cell in the board.
@@ -95,7 +74,9 @@ The proper format of a new level:
   - Uppercase letters (e.g., A, B, C) for target positions
   - Lowercase letters (e.g., a, b, c) for initial positions
  - Optional Optimal Moves:
-   - If there are more lines than the size of the board, the line immediately following the board state can contain an integer representing the optimal number of moves.
+   - If there are more lines than the size of the board, the line immediately following the board state can contain an integer representing the optimal number of moves.   
+  
+A custom level will be added to a level manager if the level is in the correct format and solvable, with lowercase letters mapped to the corresponding colors. Then, the custom level is preselected, so it can be immediately used for playing. 
 
 ### Running Benchmarks
 
@@ -141,8 +122,6 @@ Each metric is plotted per individual level for detailed analysis.
 ## Project Structure
 
 - `main.py`: Main entry point with game mode selection
-- `play_game.py`: Interactive gameplay implementation
-- `ai_game_solver.py`: AI solver implementation
 - `game_state.py`: Game state and objective test representation
 - `move.py`: Handles tile movement logic
 - `level_manager.py`: Level loading and management
@@ -152,4 +131,6 @@ Each metric is plotted per individual level for detailed analysis.
 - `heuristic.py`: Heuristic functions for greedy and A\* search
 - `metrics_collector.py`: Collection and storage of performance metrics
 - `benchmark_utils.py`: Benchmark utilities and metrics plotting
-- `benchmark.py`: Comprehensive benchmarking script
+- `benchmark.py`: Comprehensive benchmarking script   
+
+[TBD]
