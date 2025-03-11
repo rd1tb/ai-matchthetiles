@@ -9,23 +9,10 @@ from game_state import GameState
 from level import Level
 from level_validator import LevelValidator
 
-
-
 class LevelManager:
-    # File character to color mapping for level loading
-    FILE_COLOR_MAP = {
-        "b": "blue",
-        "r": "red",
-        "g": "green",
-        "p": "purple",
-        "o": "orange",
-        "y": "yellow",
-        "c": "cyan",
-    }
-
     #Dictionary of predefined levels
     PREDEFINED_LEVELS = {
-        1: [Level(
+        1: Level(
             GameState(
                 tiles={(0, 0): "orange", (3, 1): "purple"},
                 targets={(0, 3): "orange", (3, 3): "purple"},
@@ -34,8 +21,8 @@ class LevelManager:
                 size=4
                 ),
             1
-        )],
-        2: [Level(
+        ),
+        2: Level(
             GameState(
                 tiles={(2, 1): "green", (3, 3): "purple"},
                 targets={(3, 0): "green", (3, 1): "purple"},
@@ -44,8 +31,8 @@ class LevelManager:
                 size=4
                 ),
             2
-        )],
-        3: [Level(
+        ),
+        3: Level(
             GameState(
                 tiles={(0, 2): "orange", (3, 3): "purple"},
                 targets={(3, 0): "orange", (2, 1): "purple"},
@@ -54,8 +41,8 @@ class LevelManager:
                 size=4
                 ),
             3
-        )],
-        4: [
+        ),
+        4:
             Level(
                 GameState(
                     tiles={(0, 3): "green", (2, 0): "purple"},
@@ -65,8 +52,8 @@ class LevelManager:
                     size=4
                 ),
             4
-        )],
-        5: [
+        ),
+        5:
             Level(
                 GameState(
                     tiles={(1, 0): "orange", (1, 1): "red"},
@@ -76,8 +63,8 @@ class LevelManager:
                     size=4
                 ),
             4
-        )],
-        6:  [
+        ),
+        6:
             Level(
                 GameState(
                     tiles={(1, 2): "red", (3, 3): "blue"},
@@ -87,8 +74,8 @@ class LevelManager:
                     size=4
                 ),
             5
-        )],
-        7:  [
+        ),
+        7:
             Level(
                 GameState(
                     tiles={(2, 1): "orange", (3, 1): "brown"},
@@ -98,8 +85,8 @@ class LevelManager:
                     size=4
                 ),
             5
-        )],
-        8:  [
+        ),
+        8:
             Level(
                 GameState(
                     tiles={(0, 1): "red", (0, 2): "blue"},
@@ -109,8 +96,8 @@ class LevelManager:
                     size=4
                 ),
             5
-        )],
-        9:  [
+        ),
+        9:
             Level(
                 GameState(
                     tiles={(2, 0): "purple", (1, 3): "brown"},
@@ -120,8 +107,8 @@ class LevelManager:
                     size=4
                 ),
             6
-        )],
-        10:  [
+        ),
+        10:
             Level(
                 GameState(
                     tiles={(0, 2): "orange", (2, 1): "red"},
@@ -131,8 +118,8 @@ class LevelManager:
                     size=4
                 ),
             6
-        )],
-        11:  [
+        ),
+        11:
             Level(
                 GameState(
                     tiles={(1, 1): "blue", (3, 2): "red"},
@@ -142,8 +129,8 @@ class LevelManager:
                     size=4
                 ),
             6
-        )],
-        12:  [
+        ),
+        12:
             Level(
                 GameState(
                     tiles={(1, 2): "purple", (2, 1): "orange"},
@@ -153,8 +140,8 @@ class LevelManager:
                     size=4
                 ),
             6
-        )],
-        13:  [
+        ),
+        13:
             Level(
                 GameState(
                     tiles={(0, 3): "purple", (2, 2): "brown"},
@@ -164,8 +151,8 @@ class LevelManager:
                     size=4
                 ),
             7
-        )],
-        14:  [
+        ),
+        14:
             Level(
                 GameState(
                     tiles={(0, 3): "purple", (1, 1): "blue"},
@@ -175,8 +162,8 @@ class LevelManager:
                     size=4
                 ),
             7
-        )],
-        15:  [
+        ),
+        15:
             Level(
                 GameState(
                     tiles={(0, 0): "brown", (3, 1): "purple"},
@@ -186,8 +173,8 @@ class LevelManager:
                     size=4
                 ),
             7
-        )],
-        29:  [
+        ),
+        29:
             Level(
                 GameState(
                     tiles={(1, 0): "purple", (3, 1): "green"},
@@ -197,8 +184,8 @@ class LevelManager:
                     size=4
                 ),
             11
-        )],
-        35:  [
+        ),
+        35:
             Level(
                 GameState(
                     tiles={(0, 2): "purple", (1, 1): "orange"},
@@ -208,8 +195,8 @@ class LevelManager:
                     size=4
                 ),
             12
-        )],
-        41:  [
+        ),
+        41:
             Level(
                 GameState(
                     tiles={(4, 0): "brown", (4, 2): "green"},
@@ -219,8 +206,8 @@ class LevelManager:
                     size=5
                 ),
             13
-        )],
-        53:  [
+        ),
+        53:
             Level(
                 GameState(
                     tiles={(0, 4): "red", (4, 3): "purple"},
@@ -230,8 +217,8 @@ class LevelManager:
                     size=5
                 ),
             14
-        )],
-        60:  [
+        ),
+        60:
             Level(
                 GameState(
                     tiles={(0, 1): "blue", (3, 2): "red"},
@@ -241,8 +228,8 @@ class LevelManager:
                     size=5
                 ),
             15
-        )],
-        73:  [
+        ),
+        73:
             Level(
                 GameState(
                     tiles={(1, 3): "blue", (2, 1): "blue"},
@@ -252,8 +239,8 @@ class LevelManager:
                     size=5
                 ),
             12
-        )],
-        116: [
+        ),
+        116:
             Level(
                 GameState(
                     tiles={(0, 1): "purple", (0, 5): "blue", (2, 0): "orange"},
@@ -263,8 +250,8 @@ class LevelManager:
                     size=6
                 ),
             9
-        )],
-        142: [
+        ),
+        142:
             Level(
                 GameState(
                     tiles={(1, 3): "green", (1, 4): "orange", (3, 5): "brown"},
@@ -274,8 +261,8 @@ class LevelManager:
                     size=6
                 ),
             11
-        )],
-        158: [
+        ),
+        158:
             Level(
                 GameState(
                     tiles={(0, 1): "orange", (1, 3): "blue", (1, 4): "brown"},
@@ -285,8 +272,8 @@ class LevelManager:
                     size=6
                 ),
             12
-        )],
-        174: [
+        ),
+        174:
             Level(
                 GameState(
                     tiles={(1, 4): "green", (2, 3): "blue", (4, 1): "orange"},
@@ -296,40 +283,43 @@ class LevelManager:
                     size=6
                 ),
             13
-        )]
+        )
     }
 
-    def __init__(self, levels: Dict[int, List[Level]] = None):
+
+    def __init__(self, additional_levels: Dict[int, Level] = None):
         """Initializes the LevelManager with predefined levels and optional additional levels.
 
         Args:
-            levels (Dict[int, List[Level]], optional): Additional levels to add to the manager.
+            additional_levels (Dict[int, Level], optional): Additional levels to add to the manager.
         """
         self.validator = LevelValidator()
+        
+        # Initialize with the predefined levels (one level per index)
         self.levels = SortedDict(self.PREDEFINED_LEVELS)
-        if levels:
-            for k, v in levels.items():
-                if k in self.levels:
-                    self.levels[k].extend([v] if not isinstance(v, list) else v)
-                else:
-                    self.levels[k] = [v] if not isinstance(v, list) else v
+                
+        # Add any additional levels provided
+        if additional_levels:
+            for level_idx, level in additional_levels.items():
+                # Use our add_level method to handle potential index collisions
+                self.add_level(level_idx, level)
         
         # Track the last loaded level
         self.last_loaded_level_id = None
+        
+        # Counter for custom levels, starting from 999 and decreasing
+        self.custom_level_counter = 999
 
     def get_level(self, level_index: int) -> Level:
-        """Gets a random level from the specified level index.
+        """Gets a level from the specified level index.
 
         Args:
             level_index (int): The index of the level to retrieve.
 
         Returns:
-            Level: A random level from the specified index.
+            Level: The level at the specified index, or None if not found.
         """
-        if level_index not in self.levels:
-            return None
-        level_list = self.levels[level_index]
-        return random.choice(level_list)
+        return self.levels.get(level_index)
 
     def get_next_level(self, current_level: int) -> Optional[Tuple[int, Level]]:
         """Gets the next level after the current level.
@@ -344,7 +334,7 @@ class LevelManager:
             index = self.levels.bisect_right(current_level)
             if index < len(self.levels):
                 next_level_num = self.levels.keys()[index]
-                return next_level_num, self.get_level(next_level_num)
+                return next_level_num, self.levels[next_level_num]
         except ValueError:
             pass
         return None
@@ -357,95 +347,55 @@ class LevelManager:
         """
         return sorted(self.levels.keys())
 
-    def add_level(self, level_index: int, level: Level):
+    def add_level(self, level_index: int, level: Level) -> int:
         """Adds a new level to the manager.
+        If the requested index is already taken, assigns a new index starting from 999 and counting down.
 
         Args:
-            level_index (int): The index of the level to add.
+            level_index (int): The requested index for the level.
             level (Level): The level to add.
-        """
-        if level_index in self.levels:
-            if level not in self.levels[level_index]:
-                self.levels[level_index].append(level)
-        else:
-            self.levels[level_index] = [level]
-
-    def map_color_code_to_name(self, color_code: str) -> str:
-        """Maps a single-character color code to its full color name.
-        
-        Args:
-            color_code (str): The single-character color code
             
         Returns:
-            str: The full color name or the original code if not found in the map
+            int: The actual index where the level was added.
         """
-        # Convert to lowercase to handle both uppercase and lowercase codes
-        color_code = color_code.lower()
+        # If requested index is available, use it
+        if level_index not in self.levels:
+            self.levels[level_index] = level
+            return level_index
+            
+        # Otherwise, find the next available custom index
+        while self.custom_level_counter in self.levels:
+            self.custom_level_counter -= 1
+            
+        # Add level at the new custom index
+        actual_index = self.custom_level_counter
+        self.levels[actual_index] = level
         
-        # Check if the color code is in the map
-        if color_code in self.FILE_COLOR_MAP:
-            return self.FILE_COLOR_MAP[color_code]
+        # Prepare the next custom index for future use
+        self.custom_level_counter -= 1
         
-        # If not found in the map, return black
-        return "black"
-
-    def load_level_from_file(self, file_path: str):
-        """Loads a level from a file and adds it to the manager.
-
+        return actual_index
+    
+    def get_levels_by_size(self, size: int) -> List[Tuple[str, int]]:
+        """Gets all levels with a specific board size
+        
         Args:
-            file_path (str): The path to the file containing the level.
+            size (int): Board size to filter by
             
         Returns:
-            int: The level ID of the loaded level, or None if loading failed
+            List[Tuple[str, int]]: List of (level_name, level_id) tuples
         """
-        if not os.path.exists(file_path):
-            print(f"Error! Did not manage to load a level from {file_path}: file does not exist.")
-            return None
-
-        file_name = os.path.splitext(os.path.basename(file_path))[0]
-        match = re.search(r'\d+', file_name)
-        level_index = int(match.group()) if match else 0
-
-        with open(file_path, 'r') as file:
-            lines = file.readlines()
-
-        tiles = {}
-        targets = {}
-        blanks = []
-        blockers = []
-        size = len(lines[0].strip())
-        for i, line in enumerate(lines[:size]):
-            line = line.strip()
-            for j, cell in enumerate(line):
-                if cell == '#':
-                    blockers.append((j, i))
-                elif cell == '_':
-                    blanks.append((j, i))
-                elif cell.isupper():
-                    # Map uppercase letters to full color names for targets
-                    color_name = self.map_color_code_to_name(cell.lower())
-                    targets[(j, i)] = color_name
-                elif cell != ' ':
-                    # Map lowercase letters to full color names for tiles
-                    color_name = self.map_color_code_to_name(cell)
-                    tiles[(j, i)] = color_name
-
-        if len(lines) > size:
+        result = []
+        
+        for level_index, level in self.levels.items():
             try:
-                read_optimal_moves = int(lines[size].strip())
-            except ValueError:
-                read_optimal_moves = None
-        else:
-            read_optimal_moves = None
-
-        game_state = GameState(tiles=tiles, targets=targets, blanks=blanks, blockers=blockers, size=size)
-        level = Level(initial_state=game_state, optimal_moves=read_optimal_moves)
-        if not self.validator.validate_level(level):
-            return None
-
-        self.add_level(level_index, level)
+                if level.initial_state.size == size:
+                    # Create tuple of (display_name, level_id)
+                    display_name = f"Level {level_index}"
+                    result.append((display_name, level_index))
+            except AttributeError:
+                # Skip entries that don't have the expected structure
+                continue
         
-        # Store the ID of the loaded level
-        self.last_loaded_level_id = level_index
-        
-        return level_index
+        # Sort by level index for consistent ordering
+        return sorted(result, key=lambda x: x[1])

@@ -2,16 +2,16 @@ import pygame
 import sys
 from game_gui import GameGUI
 
-# Initialize pygame
-pygame.init()
-
-# Main execution point
-if __name__ == "__main__":
+def main():
+    pygame.init()
+    
+    # Create and run the game
     game = GameGUI()
-    try:
-        game.main()
-    except Exception as e:
-        print(f"Error: {e}")
-    finally:
-        pygame.quit()
-        sys.exit()
+    game.run()
+    
+    # Clean up
+    pygame.quit()
+    sys.exit()
+
+if __name__ == "__main__":
+    main()
