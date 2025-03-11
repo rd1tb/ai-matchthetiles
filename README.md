@@ -121,16 +121,25 @@ Each metric is plotted per individual level for detailed analysis.
 
 ## Project Structure
 
-- `main.py`: Main entry point with game mode selection
+- `main.py`: Main entry point to the game
 - `game_state.py`: Game state and objective test representation
 - `move.py`: Handles tile movement logic
-- `level_manager.py`: Level loading and management
+- `level_manager.py`: Level management
 - `level_validator.py`: Level validation
 - `level.py`: Level class implementation
-- `search_algorithm.py`: Search algorithms implementation (BFS, IDS, Greedy, A\*)
-- `heuristic.py`: Heuristic functions for greedy and A\* search
+- `search_algorithm.py`: Search algorithms implementation (BFS, IDS, Greedy, A*)
+- `heuristic.py`: Heuristic functions for greedy and A* search
 - `metrics_collector.py`: Collection and storage of performance metrics
 - `benchmark_utils.py`: Benchmark utilities and metrics plotting
-- `benchmark.py`: Comprehensive benchmarking script   
-
-[TBD]
+- `benchmark.py`: Comprehensive benchmarking script
+- `game_gui.py`: Main game GUI and loop implementation
+- `game_controller.py`: Handles game logic and state for player and AI modes
+- `game_session_manager.py`: Manages game session state and transitions
+- `dialog_manager.py`: Manages all dialog windows in the game
+- `menu_manager.py`: Manages all menu functionality
+- `board_renderer.py`: Base class for rendering the game board
+- `player_game_renderer.py`: Renderer for the player's game view
+- `ai_game_renderer.py`: Renderer for the AI game view
+- `level_loader.py`: Handles loading levels from files
+- `text_input_dialog.py`: Simple text input dialog for entering file paths
+- `game_constants.py`: Game constants and configuration values

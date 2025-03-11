@@ -106,7 +106,7 @@ class PlayerGameRenderer(BoardRenderer):
         # Draw "No hint available" message and arrow if no hint
         if hasattr(self, 'game_controller') and hasattr(self.game_controller, 'no_hint_available') and self.game_controller.no_hint_available:
             current_time = pygame.time.get_ticks()
-            if current_time - self.game_controller.no_hint_start_time < self.game_controller.NO_HINT_DURATION:
+            if current_time - self.game_controller.no_hint_start_time < NO_HINT_DURATION:
                 # Display the "No hint available" message in top right
                 no_hint_text = "No hint available!"
                 no_hint_surface = self.fonts['regular'].render(no_hint_text, True, (200, 0, 0))  # Red text

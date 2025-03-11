@@ -5,7 +5,8 @@ FPS = 60
 CELL_PADDING = 0
 HINT_DURATION = 2500  # 2.5 seconds in milliseconds
 SIDE_MARGIN = 50  # Added side margin constant
-AI_STEP_DELAY = 600  # Milliseconds between AI moves
+AI_STEP_DELAY = 500  # Milliseconds between AI moves
+NO_HINT_DURATION = 3000  # Display "No hint available" for 3 seconds
 
 # Colors
 BACKGROUND_COLOR = (230, 240, 248)

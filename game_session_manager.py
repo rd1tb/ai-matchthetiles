@@ -54,26 +54,26 @@ class GameSessionManager:
         self.ai_thinking = False
     
     def change_board_size(self, size):
-        """Change the board size and filter levels accordingly
-        
-        Args:
-            size: New board size
+            """Change the board size and filter levels accordingly
             
-        Returns:
-            bool: True if the board size changed
-        """
-        if self.board_size != size:
-            self.board_size = size
-            self.filter_levels_by_size()
-            
-            # Set the current level to the first one in the filtered list
-            if self.filtered_levels:
-                self.current_level_index = self.filtered_levels[0][1]
-            else:
-                self.current_level_index = None
+            Args:
+                size: New board size
                 
-            return True
-        return False
+            Returns:
+                bool: True if the board size changed
+            """
+            if self.board_size != size:
+                self.board_size = size
+                self.filter_levels_by_size()
+                
+                # Set the current level to the first one in the filtered list
+                if self.filtered_levels:
+                    self.current_level_index = self.filtered_levels[0][1]
+                else:
+                    self.current_level_index = None
+                    
+                return True
+            return False
     
     def filter_levels_by_size(self):
         """Filter levels by the current board size"""

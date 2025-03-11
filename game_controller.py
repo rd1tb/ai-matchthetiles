@@ -3,7 +3,7 @@ from copy import deepcopy
 from move import POSSIBLE_MOVES, SlideDown, SlideLeft, SlideRight, SlideUp
 import search_algorithm
 import heuristic
-import game_constants
+from game_constants import *
 
 class GameController:
     """Handles game logic and state for both player and AI modes"""
@@ -33,7 +33,6 @@ class GameController:
         self.hint_start_time = 0
         self.no_hint_available = False
         self.no_hint_start_time = 0
-        self.NO_HINT_DURATION = 3000  # Display "No hint available" for 3 seconds
         
         self.algorithm_metrics = None
         
@@ -225,7 +224,7 @@ class GameController:
             current_time = pygame.time.get_ticks()
             
             # Only apply the next step if enough time has passed
-            if current_time - self.last_step_time > game_constants.AI_STEP_DELAY:
+            if current_time - self.last_step_time > AI_STEP_DELAY:
                 move_name = self.solution_path[self.current_solution_step]
                 # Find the move class matching the name
                 for move in POSSIBLE_MOVES:

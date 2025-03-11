@@ -1,22 +1,14 @@
 import pygame
 import pygame_menu
 import sys
-from copy import deepcopy
-import math
-import time
-import os
 
 # Import game modules
 from game_constants import *
-from game_state import GameState
 from level_manager import LevelManager
-from move import POSSIBLE_MOVES, SlideDown, SlideLeft, SlideRight, SlideUp
-from board_renderer import BoardRenderer
 from player_game_renderer import PlayerGameRenderer
 from ai_game_renderer import AIGameRenderer
 from menu_manager import MenuManager
 from game_controller import GameController
-from text_input_dialog import TextInputDialog
 from level_loader import LevelLoader
 from dialog_manager import DialogManager
 from game_session_manager import GameSessionManager
@@ -79,59 +71,9 @@ class GameGUI:
             if self.game_session_manager.in_game:
                 # If in AI mode, handle solution playback
                 if self.game_controller.ai_mode:
-                    ui_elements = self.draw_ai_game()
-                    
-                    # If solution is being played out, handle the animation timing
-                    if self.game_controller.solution_path:
-                        solution_complete, _ = self.game_controller.apply_solution_step()
-                        
-                        if solution_complete:
-                            # Draw final state before showing completion dialog
-                            self.draw_ai_game()
-                            pygame.display.flip()
-                            pygame.time.delay(300)  # Show final state for 300 milliseconds
-                            
-                            # Get the next level information - handle the tuple return format
-                            next_level_tuple = self.level_manager.get_next_level(self.game_session_manager.current_level_index)
-                            
-                            # Convert tuple to dictionary format if it exists
-                            next_level_info = None
-                            if next_level_tuple:
-                                next_level_num, next_level = next_level_tuple
-                                next_level_info = {
-                                    'level_index': next_level_num,
-                                    'name': f'Level {next_level_num}'
-                                }
-                            
-                            def on_next_level():
-                                self.dialog_manager.close_dialog()  # Close dialog first
-                                self.game_session_manager.showing_dialog = False
-                                self.game_session_manager.load_next_level(next_level_info)
-                            
-                            def on_return_to_game():
-                                self.dialog_manager.close_dialog()  # Close dialog first
-                                self.game_session_manager.showing_dialog = False
-                                self.game_controller.restart_level()
-                                self.game_session_manager.in_game = True
-                            
-                            def on_main_menu():
-                                self.dialog_manager.close_dialog()  # Close dialog first
-                                self.game_session_manager.showing_dialog = False
-                                self.game_session_manager.exit_game()
-                                self.show_main_menu()
-                            
-                            # Show the AI completion dialog
-                            self.dialog_manager.show_ai_complete_message(
-                                len(self.game_controller.solution_path),
-                                self.game_controller.optimal_moves,
-                                self.game_controller.algorithm_metrics,
-                                on_return_to_game,
-                                on_next_level if next_level_info else None,
-                                on_main_menu
-                            )
-                            
-                            self.game_session_manager.in_game = False
-                            self.game_session_manager.showing_dialog = True
+                    self.draw_ai_game()
+                    # Check for AI solution progress and handle it
+                    self.update_ai_solution()
                 else:
                     self.draw_game()
                 
@@ -161,6 +103,75 @@ class GameGUI:
             
             self.clock.tick(FPS)
 
+    def update_ai_solution(self):
+        """Handle AI solution progress and completion."""
+        # Only process if there's an active solution path
+        if self.game_controller.solution_path:
+            solution_complete, _ = self.game_controller.apply_solution_step()
+            
+            if solution_complete:
+                self.handle_ai_solution_completion()
+
+    def handle_ai_solution_completion(self):
+        """Handle the completion of an AI solution."""
+        # Draw final state before showing completion dialog
+        self.draw_ai_game()
+        pygame.display.flip()
+        pygame.time.delay(300)  # Show final state for 300 milliseconds
+        
+        # Get the next level information
+        next_level_info = self.get_next_level_info()
+        
+        # Define callback functions for the dialog
+        def on_next_level():
+            self.dialog_manager.close_dialog()
+            self.game_session_manager.showing_dialog = False
+            self.game_session_manager.load_next_level(next_level_info)
+        
+        def on_return_to_game():
+            self.dialog_manager.close_dialog()
+            self.game_session_manager.showing_dialog = False
+            self.game_controller.restart_level()
+            self.game_session_manager.in_game = True
+        
+        def on_main_menu():
+            self.dialog_manager.close_dialog()
+            self.game_session_manager.showing_dialog = False
+            self.game_session_manager.exit_game()
+            self.show_main_menu()
+        
+        # Show the AI completion dialog with the algorithm name
+        self.dialog_manager.show_ai_complete_message(
+            self.current_algorithm_name,  # Pass the algorithm name
+            len(self.game_controller.solution_path),
+            self.game_controller.optimal_moves,
+            self.game_controller.algorithm_metrics,
+            on_return_to_game,
+            on_next_level if next_level_info else None,
+            on_main_menu
+        )
+        
+        # Update game session state
+        self.game_session_manager.in_game = False
+        self.game_session_manager.showing_dialog = True
+    
+    def get_next_level_info(self):
+        """Get information about the next level.
+        
+        Returns:
+            dict or None: Dictionary with next level information or None if there is no next level
+        """
+        next_level_tuple = self.level_manager.get_next_level(self.game_session_manager.current_level_index)
+        
+        # Convert tuple to dictionary format if it exists
+        if next_level_tuple:
+            next_level_num, next_level = next_level_tuple
+            return {
+                'level_index': next_level_num,
+                'name': f'Level {next_level_num}'
+            }
+        return None
+
     def process_player_game_events(self, event):
         """Process game events for player mode."""
         ui_elements = self.draw_game()
@@ -189,36 +200,7 @@ class GameGUI:
             is_solved = self.game_controller.process_player_event(event, ui_elements)
             
             if is_solved:
-                # First draw the final board state before showing win message
-                self.draw_game()
-                pygame.display.flip()
-                pygame.time.delay(100)  # Give 100ms to see the final state
-                
-                # Generate callbacks for win dialog
-                next_level_info = self.level_manager.get_next_level(self.game_session_manager.current_level_index)
-                
-                def on_next_level():
-                    self.dialog_manager.close_dialog()  # Close dialog first
-                    self.game_session_manager.showing_dialog = False
-                    self.game_session_manager.load_next_level(next_level_info)
-                
-                def on_main_menu():
-                    self.dialog_manager.close_dialog()  # Close dialog first
-                    self.game_session_manager.showing_dialog = False
-                    self.game_session_manager.exit_game()
-                    self.show_main_menu()
-                
-                # Show the win dialog
-                self.dialog_manager.show_win_message(
-                    self.game_controller.moves_count,
-                    self.game_controller.optimal_moves,
-                    next_level_info,
-                    on_next_level if next_level_info else None,
-                    on_main_menu
-                )
-                
-                self.game_session_manager.in_game = False
-                self.game_session_manager.showing_dialog = True
+                self.handle_player_level_completion()
                 return
             
             # Handle menu and exit buttons separately since they're not part of game logic
@@ -231,6 +213,81 @@ class GameGUI:
                             self.show_main_menu()
                         elif element_name == 'exit':
                             self.game_session_manager.running = False
+    
+    def handle_player_level_completion(self):
+        """Handle player completing a level."""
+        # First draw the final board state before showing win message
+        self.draw_game()
+        pygame.display.flip()
+        pygame.time.delay(300)  # Give 300ms to see the final state
+        
+        # Get next level info
+        next_level_info = self.get_next_level_info()
+        
+        def on_next_level():
+            self.dialog_manager.close_dialog()
+            self.game_session_manager.showing_dialog = False
+            if next_level_info:
+                self.game_session_manager.load_next_level(next_level_info)
+        
+        def on_main_menu():
+            self.dialog_manager.close_dialog()
+            self.game_session_manager.showing_dialog = False
+            self.game_session_manager.exit_game()
+            self.show_main_menu()
+        
+        # Show the win dialog
+        self.dialog_manager.show_win_message(
+            self.game_controller.moves_count,
+            self.game_controller.optimal_moves,
+            next_level_info,
+            on_next_level if next_level_info else None,
+            on_main_menu
+        )
+        
+        self.game_session_manager.in_game = False
+        self.game_session_manager.showing_dialog = True
+    
+    def process_ai_game_events(self, event):
+        """Process game events for AI mode."""
+        ui_elements = self.draw_ai_game()
+        
+        # Check for algorithm button clicks
+        algorithm_selected, algorithm_name = self.game_controller.process_ai_event(event, ui_elements)
+        
+        if algorithm_selected:
+            # Store the algorithm name for use in the completion dialog
+            self.current_algorithm_name = algorithm_name
+            
+            # Show "AI thinking..." prompt 
+            self.game_session_manager.ai_thinking = True
+            
+            # Draw the screen with "AI thinking" message
+            self.draw_ai_game()
+            pygame.display.flip()
+            
+            # Run the selected algorithm
+            success, _ = self.game_controller.run_algorithm(algorithm_name)
+            
+            self.game_session_manager.ai_thinking = False
+            
+            if not success:
+                # Show error message if algorithm failed
+                self.level_loader.show_loading_indicator(
+                    f"Algorithm failed to find a solution!",
+                    3000, False
+                )
+        
+        # Handle menu and exit buttons
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_pos = pygame.mouse.get_pos()
+            for element_name, rect in ui_elements.items():
+                if rect.collidepoint(mouse_pos):
+                    if element_name == 'menu':
+                        self.game_session_manager.exit_game()
+                        self.show_main_menu()
+                    elif element_name == 'exit':
+                        self.game_session_manager.running = False
     
     def draw_game(self):
         """Draw the game in player mode"""
@@ -288,7 +345,23 @@ class GameGUI:
             print("ERROR: Failed to create main menu!")
             pygame.quit()
             sys.exit()
-    
+        
+        # If we have just loaded a custom level loaded, try to select it in the dropdown
+        if self.level_loader.last_loaded_custom_level and self.menu_manager.level_selector:
+            custom_level_id, _ = self.level_loader.last_loaded_custom_level
+            
+            # Find the custom level in the filtered levels
+            for i, (_, level_id) in enumerate(self.game_session_manager.filtered_levels):
+                if level_id == custom_level_id:
+                    try:
+                        self.menu_manager.level_selector.set_value(i)
+                        # Also update the current level index
+                        self.game_session_manager.current_level_index = custom_level_id
+                        self.level_loader.last_loaded_custom_level = None
+                        break
+                    except Exception as e:
+                        print(f"Error setting level selector to custom level: {e}")
+
     def change_board_size(self, _, size):
         """Handle board size change from the menu
         
@@ -300,22 +373,6 @@ class GameGUI:
         if self.game_session_manager.change_board_size(size):
             # Update the menu with the new filtered levels
             self.menu_manager.update_level_selector(self.game_session_manager.filtered_levels)
-            
-            # Check if we need to update based on a custom loaded level
-            if self.level_loader.last_loaded_custom_level:
-                level_id, level_size = self.level_loader.last_loaded_custom_level
-                if level_size == size:
-                    # Use the custom level ID
-                    self.game_session_manager.current_level_index = level_id
-                    
-                    # Try to select it in the dropdown
-                    for i, (_, level_num) in enumerate(self.game_session_manager.filtered_levels):
-                        if level_num == level_id:
-                            try:
-                                self.menu_manager.level_selector.set_value(i)
-                            except Exception as e:
-                                print(f"Warning: Could not set level selector value: {e}")
-                            break
     
     def change_level(self, _, selected_value):
         """Change the current level based on selection
@@ -350,28 +407,12 @@ class GameGUI:
                     # Set the board size directly
                     self.game_session_manager.change_board_size(new_level_size)
                     
-                    # Use the MenuManager helper method to set the board size
-                    self.menu_manager.set_board_size(new_level_size)
-                    
-                    # Update the filtered levels for the new board size
-                    self.menu_manager.update_level_selector(self.game_session_manager.filtered_levels)
                 else:
                     # If board size is the same, just update the filtered levels
                     self.game_session_manager.filter_levels_by_size()
-                    self.menu_manager.update_level_selector(self.game_session_manager.filtered_levels)
                 
                 # Set the current level to the newly loaded one
                 self.game_session_manager.current_level_index = new_level_id
-                
-                # Try to update level selector dropdown to select the new level
-                if self.menu_manager.level_selector:
-                    for i, (_, level_num) in enumerate(self.game_session_manager.filtered_levels):
-                        if level_num == new_level_id:
-                            try:
-                                self.menu_manager.level_selector.set_value(i)
-                                break
-                            except Exception as e:
-                                print(f"Warning: Could not update level selector: {e}")
             
             self.show_main_menu()
         
@@ -398,123 +439,3 @@ class GameGUI:
             self.process_ai_game_events(event)
         else:
             self.process_player_game_events(event)
-    
-    def process_player_game_events(self, event):
-        """Process game events for player mode."""
-        ui_elements = self.draw_game()
-        
-        # Check for hint button clicks before processing other events
-        if event.type == pygame.MOUSEBUTTONDOWN and not self.game_session_manager.hint_thinking:
-            mouse_pos = pygame.mouse.get_pos()
-            for element_name, rect in ui_elements.items():
-                if rect.collidepoint(mouse_pos) and element_name == 'hint':
-                    self.game_session_manager.hint_thinking = True
-                    # Draw the screen with "Thinking..." immediately
-                    self.draw_game()
-                    pygame.display.flip()
-                    # Generate hint
-                    hint_info = self.game_controller.show_hint()
-                    self.game_session_manager.hint_thinking = False
-                    
-                    # If no hint is available, set the no_hint flag to display the message
-                    if hint_info and hint_info.get('no_hint'):
-                        self.game_controller.no_hint_available = True
-                        self.game_controller.no_hint_start_time = pygame.time.get_ticks()
-                    return
-        
-        # If not processing a hint request, handle other events
-        if not self.game_session_manager.hint_thinking:
-            is_solved = self.game_controller.process_player_event(event, ui_elements)
-            
-            if is_solved:
-                # First draw the final board state before showing win message
-                self.draw_game()
-                pygame.display.flip()
-                pygame.time.delay(100)  # Give 100ms to see the final state
-                
-                # Get the next level information - handle the tuple return format
-                next_level_tuple = self.level_manager.get_next_level(self.game_session_manager.current_level_index)
-                
-                # Convert tuple to dictionary format if it exists
-                next_level_info = None
-                if next_level_tuple:
-                    next_level_num, next_level = next_level_tuple
-                    next_level_info = {
-                        'level_index': next_level_num,
-                        'name': f'Level {next_level_num}'
-                    }
-                
-                def on_next_level():
-                    self.dialog_manager.close_dialog()  # Close dialog first
-                    self.game_session_manager.showing_dialog = False
-                    if next_level_info:
-                        self.game_session_manager.load_next_level(next_level_info)
-                
-                def on_main_menu():
-                    self.dialog_manager.close_dialog()  # Close dialog first
-                    self.game_session_manager.showing_dialog = False
-                    self.game_session_manager.exit_game()
-                    self.show_main_menu()
-                
-                # Show the win dialog
-                self.dialog_manager.show_win_message(
-                    self.game_controller.moves_count,
-                    self.game_controller.optimal_moves,
-                    next_level_info,
-                    on_next_level if next_level_info else None,
-                    on_main_menu
-                )
-                
-                self.game_session_manager.in_game = False
-                self.game_session_manager.showing_dialog = True
-                return
-            
-            # Handle menu and exit buttons separately since they're not part of game logic
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_pos = pygame.mouse.get_pos()
-                for element_name, rect in ui_elements.items():
-                    if rect.collidepoint(mouse_pos):
-                        if element_name == 'menu':
-                            self.game_session_manager.exit_game()
-                            self.show_main_menu()
-                        elif element_name == 'exit':
-                            self.game_session_manager.running = False
-    
-    def process_ai_game_events(self, event):
-        """Process game events for AI mode."""
-        ui_elements = self.draw_ai_game()
-        
-        # Check for algorithm button clicks
-        algorithm_selected, algorithm_name = self.game_controller.process_ai_event(event, ui_elements)
-        
-        if algorithm_selected:
-            # Show "AI thinking..." prompt 
-            self.game_session_manager.ai_thinking = True
-            self.current_algorithm_name = algorithm_name
-            
-            # Draw the screen with "AI thinking" message
-            self.draw_ai_game()
-            pygame.display.flip()
-            
-            # Run the selected algorithm
-            success, solution_info = self.game_controller.run_algorithm(algorithm_name)
-            
-            self.game_session_manager.ai_thinking = False
-            
-            if not success:
-                # Show error message if algorithm failed
-                self.level_loader.show_loading_indicator(
-                    f"Algorithm failed to find a solution!",
-                    3000, False
-                )
-        
-        # Handle menu and exit buttons
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            mouse_pos = pygame.mouse.get_pos()
-            for element_name, rect in ui_elements.items():
-                if rect.collidepoint(mouse_pos):
-                    if element_name == 'menu':
-                        self.game_session_manager.exit_game()
-                        self.show_main_menu()
-                    elif element_name == 'exit':
-                        self.game_session_manager.running = False

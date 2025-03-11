@@ -1,5 +1,4 @@
 import pygame
-import pygame_menu
 from game_constants import *
 
 class DialogManager:
@@ -15,6 +14,11 @@ class DialogManager:
         self.screen = screen
         self.menu_manager = menu_manager
         self.current_dialog = None
+        self.background_surface = None  # Add a surface to store the background
+    
+    def capture_background(self):
+        """Capture the current screen as background for dialog"""
+        self.background_surface = self.screen.copy()
     
     def show_win_message(self, moves_count, optimal_moves, next_level_info=None, on_next_level=None, on_main_menu=None):
         """Show win message dialog
@@ -26,6 +30,9 @@ class DialogManager:
             on_next_level: Callback for Next Level button
             on_main_menu: Callback for Main Menu button
         """
+        # Capture the current screen first
+        self.capture_background()
+        
         self.current_dialog = self.menu_manager.create_win_dialog(
             moves_count, 
             optimal_moves, 
@@ -34,15 +41,20 @@ class DialogManager:
             on_main_menu
         )
         
-        # Draw the dialog immediately
+        # Draw the dialog immediately with background
         if self.current_dialog:
+            # Draw background first
+            if self.background_surface:
+                self.screen.blit(self.background_surface, (0, 0))
+            
             self.current_dialog.mainloop(self.screen, disable_loop=True)
             pygame.display.flip()
     
-    def show_ai_complete_message(self, solution_path_length, optimal_moves, metrics, on_return_to_game, on_next_level=None, on_main_menu=None):
+    def show_ai_complete_message(self, algorithm_name, solution_path_length, optimal_moves, metrics, on_return_to_game, on_next_level=None, on_main_menu=None):
         """Show AI completion message dialog
         
         Args:
+            algorithm_name: Name of the algorithm that solved the puzzle
             solution_path_length: Length of the solution path found
             optimal_moves: Optimal number of moves
             metrics: Dictionary with algorithm performance metrics
@@ -50,7 +62,11 @@ class DialogManager:
             on_next_level: Callback for Next Level button
             on_main_menu: Callback to return to main menu
         """
+        # Capture the current screen first
+        self.capture_background()
+        
         self.current_dialog = self.menu_manager.create_ai_complete_dialog(
+            algorithm_name,
             solution_path_length, 
             optimal_moves, 
             metrics, 
@@ -59,8 +75,12 @@ class DialogManager:
             on_main_menu
         )
         
-        # Draw the dialog immediately
+        # Draw the dialog immediately with background
         if self.current_dialog:
+            # Draw background first
+            if self.background_surface:
+                self.screen.blit(self.background_surface, (0, 0))
+            
             self.current_dialog.mainloop(self.screen, disable_loop=True)
             pygame.display.flip()
     
@@ -74,6 +94,10 @@ class DialogManager:
             return False
             
         try:
+            # Draw background first if available
+            if self.background_surface:
+                self.screen.blit(self.background_surface, (0, 0))
+                
             self.current_dialog.update(events)
             self.current_dialog.draw(self.screen)
             pygame.display.flip()
@@ -92,3 +116,4 @@ class DialogManager:
                 print(f"Warning: Error disabling dialog: {e}")
         
         self.current_dialog = None
+        self.background_surface = None  # Clear the background surface

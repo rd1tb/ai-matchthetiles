@@ -75,10 +75,9 @@ def run_benchmark(args=None):
     
     # Run benchmark
     all_metrics = []
-    for level_idx, level_list in level_manager.levels.items():
+    for level_idx, level in level_manager.levels.items():
         if level_idx not in levels_list:
             continue
-        level = level_list[0]
         level_name = f"Level {level_idx}"
         print(f"\n===== Running benchmark for {level_name} =====")
         

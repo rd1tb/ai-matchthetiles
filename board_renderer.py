@@ -98,7 +98,7 @@ class BoardRenderer:
                 target_color = COLOR_MAP.get(state.targets[pos], BLACK)
                 pygame.draw.circle(self.screen, target_color, circle_center, circle_radius)
             else:
-                pygame.draw.circle(self.screen, WHITE, circle_center, circle_radius)
+                pygame.draw.circle(self.screen, THEME_BLUE_BACKGROUND, circle_center, circle_radius)
         
         return cell_size
     
@@ -215,4 +215,4 @@ class BoardRenderer:
             pygame.draw.rect(self.screen, THEME_BLUE_ARROW, shaft_rect)
             pygame.draw.rect(self.screen, WHITE, shaft_rect, 3)
             
-        return True  # Arrow is still active
+        return True

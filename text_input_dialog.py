@@ -6,21 +6,20 @@ class TextInputDialog:
     """Simple text input dialog for entering file paths"""
     
     @staticmethod
-    def create_dialog(screen_size, on_submit, on_cancel, previous_menu=None):
+    def create_dialog(screen_size, on_submit, on_cancel):
         """Create a text input dialog for entering a file path
         
         Args:
             screen_size: Tuple of (width, height)
             on_submit: Callback when path is submitted (receives path)
             on_cancel: Callback when the dialog is cancelled
-            previous_menu: The menu to return to when cancelled (if None, on_cancel will be called)
             
         Returns:
             pygame_menu.Menu: The text input dialog menu
         """
         width, height = screen_size
         menu_width = int(width * 0.8)
-        menu_height = int(height * 0.6)  # Increased height to cover exit button
+        menu_height = int(height * 0.6)
         
         # Create a theme
         theme = pygame_menu.Theme(
@@ -72,7 +71,7 @@ class TextInputDialog:
         dialog.add.button('Load File', submit_wrapper, font_size=27)
         
         # Add extra spacing between buttons
-        dialog.add.label("", font_size=10)  # Add empty label for spacing
+        dialog.add.label("", font_size=10)
         
         dialog.add.button('Cancel', cancel_wrapper, font_size=27)
         

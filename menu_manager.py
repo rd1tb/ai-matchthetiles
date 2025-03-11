@@ -75,6 +75,10 @@ class MenuManager:
             onchange=self.on_change_level,
             selection_option_font_size=25
         )
+        
+        # Always select the first level if available
+        if filtered_levels and len(filtered_levels) > 0:
+            self.level_selector.set_value(0)
 
         # Buttons
         self.current_menu.add.button('Play Game', self.on_start_game)
@@ -133,10 +137,11 @@ class MenuManager:
         
         return win_dialog
         
-    def create_ai_complete_dialog(self, solution_path_length, optimal_moves, metrics, on_return_to_game, on_next_level=None, on_main_menu=None):
+    def create_ai_complete_dialog(self, algorithm_name, solution_path_length, optimal_moves, metrics, on_return_to_game, on_next_level=None, on_main_menu=None):
         """Create and return dialog for when AI completes a level
         
         Args:
+            algorithm_name: Name of the algorithm that solved the puzzle
             solution_path_length: Length of the solution path found
             optimal_moves: Optimal number of moves
             metrics: Dictionary with algorithm performance metrics
@@ -154,8 +159,12 @@ class MenuManager:
         ai_theme = pygame_menu.themes.THEME_DEFAULT.copy()
         ai_theme.widget_font_size = 26  # Set larger font size for all widgets
         
+        ai_theme.title_font_size = 32
+        # Use the algorithm name directly as the dialog title
+        dialog_title = algorithm_name
+        
         dialog = pygame_menu.Menu(
-            'AI Solved It!', 
+            dialog_title, 
             width, 
             height,
             theme=ai_theme,
@@ -220,18 +229,19 @@ class MenuManager:
         return dialog
         
     def update_level_selector(self, filtered_levels):
-            """Update the level selector with new levels
-            
-            Args:
-                filtered_levels: New list of (level_name, level_id) tuples
-            """
-            if self.level_selector:
-                try:
-                    self.level_selector.update_items(filtered_levels)
-                    # Don't automatically select the first item - let caller set it explicitly
-                except Exception as e:
-                    print(f"Error updating level selector: {e}")
+        """Update the level selector with new levels
         
+        Args:
+            filtered_levels: New list of (level_name, level_id) tuples
+        """
+        if self.level_selector and filtered_levels:
+            try:
+                self.level_selector.update_items(filtered_levels)
+                # Always select the first level by default after updating
+                self.level_selector.set_value(0)
+            except Exception as e:
+                print(f"Error updating level selector: {e}")
+    
     def set_board_size(self, size):
         """Set the board size selector to a specific value
         

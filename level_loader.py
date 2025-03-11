@@ -68,12 +68,10 @@ class LevelLoader:
         
         # Create and display the text input dialog
         screen_size = (WINDOW_WIDTH, WINDOW_HEIGHT)
-        previous_menu = self.menu_manager.current_menu
         dialog = TextInputDialog.create_dialog(
             screen_size, 
             on_submit, 
-            on_cancel,
-            previous_menu  # Pass the previous menu to allow returning to it
+            on_cancel
         )
         
         return dialog, True
@@ -181,32 +179,6 @@ class LevelLoader:
         except Exception as e:
             print(f"Error loading level: {e}")
             return False, None
-    
-    def update_board_size_for_loaded_level(self, new_board_size, current_board_size, current_level_index):
-        """Update board size settings when a custom level is loaded
-        
-        Args:
-            new_board_size: Board size of the newly loaded level
-            current_board_size: Current board size
-            current_level_index: Current level index
-            
-        Returns:
-            tuple: (updated_board_size, updated_level_index)
-        """
-        updated_board_size = current_board_size
-        updated_level_index = current_level_index
-        
-        # Use the last loaded custom level if it exists
-        if self.last_loaded_custom_level:
-            level_id, level_size = self.last_loaded_custom_level
-            
-            # If we're loading a custom level with a different board size
-            if level_size == new_board_size:
-                # Use the custom level ID
-                updated_level_index = level_id
-                updated_board_size = new_board_size
-            
-        return updated_board_size, updated_level_index
 
     def show_loading_indicator(self, message, duration=1000, success=False):
         """Display a loading or status message as an overlay
