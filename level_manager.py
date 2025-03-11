@@ -397,34 +397,8 @@ class LevelManager:
             read_optimal_moves = None
 
         game_state = GameState(tiles=tiles, targets=targets, blanks=blanks, blockers=blockers, size=size)
-        print(game_state)
         level = Level(initial_state=game_state, optimal_moves=read_optimal_moves)
         if not self.validator.validate_level(level):
             return
 
         self.add_level(level_index, level)
-
-    def print_levels_by_size(self, board_size: int) -> None:
-        """Prints all levels with the specified board size.
-
-        Args:
-            board_size (int): The size of the board to filter levels by.
-        """
-        matching_levels = []
-
-        for level_num, level_list in self.levels.items():
-            for level in level_list:
-                if level.initial_state.size == board_size:
-                    matching_levels.append((level_num, level))
-
-        if not matching_levels:
-            print(f"No levels found with board size {board_size}x{board_size}")
-            return
-
-        print(f"\nLevels with {board_size}x{board_size} board:")
-        print("=" * 25)
-
-        for level_num, level in sorted(matching_levels):
-            print(f"\nLevel {level_num}")
-            print("-" * 15)
-            print(level.initial_state)
