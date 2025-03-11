@@ -3,6 +3,7 @@ from copy import deepcopy
 from move import POSSIBLE_MOVES, SlideDown, SlideLeft, SlideRight, SlideUp
 import search_algorithm
 import heuristic
+import game_constants
 
 class GameController:
     """Handles game logic and state for both player and AI modes"""
@@ -223,8 +224,8 @@ class GameController:
         if self.solution_path and self.current_solution_step < len(self.solution_path):
             current_time = pygame.time.get_ticks()
             
-            # Only apply the next step if enough time has passed - REDUCED FROM 800 to 300 ms
-            if current_time - self.last_step_time > 300:  # 300 milliseconds per step
+            # Only apply the next step if enough time has passed
+            if current_time - self.last_step_time > game_constants.AI_STEP_DELAY:
                 move_name = self.solution_path[self.current_solution_step]
                 # Find the move class matching the name
                 for move in POSSIBLE_MOVES:

@@ -73,7 +73,7 @@ class BoardRenderer:
         # Draw tiles
         for pos, color_name in state.tiles.items():
             x, y = pos
-            color = COLOR_MAP.get(color_name, WHITE)
+            color = COLOR_MAP.get(color_name, BLACK)
             
             cell_rect = pygame.Rect(
                 start_x + x * cell_size, 
@@ -95,7 +95,7 @@ class BoardRenderer:
             
             # If tile is on target, use target color for circle
             if pos in state.targets:
-                target_color = COLOR_MAP.get(state.targets[pos], WHITE)
+                target_color = COLOR_MAP.get(state.targets[pos], BLACK)
                 pygame.draw.circle(self.screen, target_color, circle_center, circle_radius)
             else:
                 pygame.draw.circle(self.screen, WHITE, circle_center, circle_radius)

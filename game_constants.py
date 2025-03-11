@@ -5,7 +5,7 @@ FPS = 60
 CELL_PADDING = 0
 HINT_DURATION = 2500  # 2.5 seconds in milliseconds
 SIDE_MARGIN = 50  # Added side margin constant
-AI_STEP_DELAY = 800  # Milliseconds between AI moves
+AI_STEP_DELAY = 600  # Milliseconds between AI moves
 
 # Colors
 BACKGROUND_COLOR = (230, 240, 248)

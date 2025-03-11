@@ -5,7 +5,7 @@ from game_constants import *
 class MenuManager:
     """Handles all menu functionality for the game"""
     
-    def __init__(self, screen_size, level_manager, on_start_game, on_start_ai, on_change_board_size, on_change_level, on_exit):
+    def __init__(self, screen_size, level_manager, on_start_game, on_start_ai, on_change_board_size, on_change_level, on_exit, on_load_custom_level):
         """Initialize menu manager with callbacks
         
         Args:
@@ -16,6 +16,7 @@ class MenuManager:
             on_change_board_size: Callback when board size is changed
             on_change_level: Callback when level is changed
             on_exit: Callback when Exit button is pressed
+            on_load_custom_level: Callback when Load Custom Level button is pressed
         """
         self.screen_width, self.screen_height = screen_size
         self.level_manager = level_manager
@@ -24,6 +25,7 @@ class MenuManager:
         self.on_change_board_size = on_change_board_size
         self.on_change_level = on_change_level
         self.on_exit = on_exit
+        self.on_load_custom_level = on_load_custom_level
         
         # Create custom theme
         self.custom_theme = pygame_menu.themes.THEME_BLUE
@@ -33,6 +35,10 @@ class MenuManager:
         # Current menu being displayed
         self.current_menu = None
         self.level_selector = None
+        self.board_size_selector = None
+        
+        # Store board size options for easy reference
+        self.board_size_options = [('4x4', 4), ('5x5', 5), ('6x6', 6)]
         
     def create_main_menu(self, filtered_levels, current_board_size):
         """Create and show the main menu
@@ -49,17 +55,17 @@ class MenuManager:
         )
         
         # Board size selector
-        size_selector = self.current_menu.add.selector(
+        self.board_size_selector = self.current_menu.add.selector(
             'Board Size: ',
-            [('4x4', 4), ('5x5', 5), ('6x6', 6)],
+            self.board_size_options,
             onchange=self.on_change_board_size,
             style=pygame_menu.widgets.SELECTOR_STYLE_FANCY
         )
         
         # Set current board size
-        for i, (_, size) in enumerate([('4x4', 4), ('5x5', 5), ('6x6', 6)]):
+        for i, (_, size) in enumerate(self.board_size_options):
             if size == current_board_size:
-                size_selector.set_value(i)
+                self.board_size_selector.set_value(i)
                 break
         
         # Level selector as dropdown
@@ -73,6 +79,10 @@ class MenuManager:
         # Buttons
         self.current_menu.add.button('Play Game', self.on_start_game)
         self.current_menu.add.button('Let AI Play', self.on_start_ai)
+        
+        # Add the Load Custom Level button
+        self.current_menu.add.button('Load Custom Level', self.on_load_custom_level)
+        
         self.current_menu.add.button('Exit', self.on_exit)
         
         return self.current_menu
@@ -210,13 +220,34 @@ class MenuManager:
         return dialog
         
     def update_level_selector(self, filtered_levels):
-        """Update the level selector with new levels
+            """Update the level selector with new levels
+            
+            Args:
+                filtered_levels: New list of (level_name, level_id) tuples
+            """
+            if self.level_selector:
+                try:
+                    self.level_selector.update_items(filtered_levels)
+                    # Don't automatically select the first item - let caller set it explicitly
+                except Exception as e:
+                    print(f"Error updating level selector: {e}")
+        
+    def set_board_size(self, size):
+        """Set the board size selector to a specific value
         
         Args:
-            filtered_levels: New list of (level_name, level_id) tuples
+            size: Board size to select (4, 5, or 6)
         """
-        if self.level_selector:
-            self.level_selector.update_items(filtered_levels)
+        if self.board_size_selector:
+            for i, (_, selector_size) in enumerate(self.board_size_options):
+                if selector_size == size:
+                    try:
+                        self.board_size_selector.set_value(i)
+                        return True
+                    except Exception as e:
+                        print(f"Error setting board size: {e}")
+                        return False
+        return False
             
     def handle_events(self, events):
         """Handle events for the current menu

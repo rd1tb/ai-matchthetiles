@@ -4,6 +4,7 @@ import sys
 from copy import deepcopy
 import math
 import time
+import os
 
 # Import game modules
 from game_constants import *
@@ -15,6 +16,7 @@ from player_game_renderer import PlayerGameRenderer
 from ai_game_renderer import AIGameRenderer
 from menu_manager import MenuManager
 from game_controller import GameController
+from text_input_dialog import TextInputDialog
 
 class GameGUI:
     def __init__(self):
@@ -45,6 +47,9 @@ class GameGUI:
         self.filter_levels_by_size()
         self.current_level_index = self.filtered_levels[0][1] if self.filtered_levels else 1
         
+        # Custom level flag
+        self.last_loaded_custom_level = None
+        
         # Menu setup
         self.menu_manager = MenuManager(
             (WINDOW_WIDTH, WINDOW_HEIGHT),
@@ -53,7 +58,8 @@ class GameGUI:
             self.start_ai_game,
             self.change_board_size,
             self.change_level,
-            pygame_menu.events.EXIT
+            pygame_menu.events.EXIT,
+            self.load_custom_level_dialog
         )
         
         # Game flags
@@ -114,12 +120,45 @@ class GameGUI:
         )
     
     def change_board_size(self, _, size):
-        """Change the board size and update level list."""
-        self.board_size = size
-        self.filter_levels_by_size()
-        self.menu_manager.update_level_selector(self.filtered_levels)
-        if self.filtered_levels:
-            self.current_level_index = self.filtered_levels[0][1]
+            """Change the board size and update level list."""
+            if self.board_size == size:
+                # No change needed
+                return
+                
+            self.board_size = size
+            
+            # Store the current level ID before updating filtered levels
+            previous_level_id = self.current_level_index
+            
+            # Refresh the filtered levels for the new board size
+            self.filter_levels_by_size()
+            
+            # Update the level selector with the new filtered levels
+            self.menu_manager.update_level_selector(self.filtered_levels)
+            
+            # Check if we're loading a custom level that matches this board size
+            if self.last_loaded_custom_level:
+                level_id, level_size = self.last_loaded_custom_level
+                if level_size == size:
+                    # Use the custom level ID
+                    self.current_level_index = level_id
+                    # Try to select it in the dropdown
+                    if self.menu_manager.level_selector:
+                        for i, (_, level_num) in enumerate(self.filtered_levels):
+                            if level_num == level_id:
+                                try:
+                                    self.menu_manager.level_selector.set_value(i)
+                                except Exception as e:
+                                    print(f"Warning: Could not set level selector value: {e}")
+                                break
+                else:
+                    # Custom level doesn't match this board size, use the first level
+                    if self.filtered_levels:
+                        self.current_level_index = self.filtered_levels[0][1]
+            else:
+                # No custom level loaded, set to first in the filtered list
+                if self.filtered_levels:
+                    self.current_level_index = self.filtered_levels[0][1]
     
     def change_level(self, _, selected_value):
         """Change the current level."""
@@ -136,6 +175,189 @@ class GameGUI:
         self.game_controller.start_game(self.current_level_index, ai_mode=True)
         self.in_game = True
         self.showing_dialog = False
+        
+    def load_custom_level_dialog(self):
+            """Open a text input dialog to enter a level file path."""
+            # Store current state to return to
+            self.in_game = False
+            self.showing_dialog = True
+            
+            # Store the current menu as the previous menu
+            previous_menu = self.menu_manager.current_menu
+            
+            # Create callbacks
+            def on_submit(file_path):
+                self.showing_dialog = False
+                self.current_dialog = None
+                
+                # Check if file exists
+                if not os.path.isfile(file_path):
+                    self.show_loading_indicator("File not found. Please check the path.", 3000, False)
+                    return
+                    
+                # Show loading indicator
+                self.show_loading_indicator("Loading level...")
+                
+                # Load the level from file - now returns the level ID or None if loading failed
+                new_level_id = self.level_manager.load_level_from_file(file_path)
+                
+                # Check if a level was successfully loaded
+                if new_level_id is not None:
+                    # Get the level and its board size
+                    level = self.level_manager.get_level(new_level_id)
+                    new_level_size = level.initial_state.size
+                    
+                    # Store information about last loaded level
+                    self.last_loaded_custom_level = (new_level_id, new_level_size)
+                    
+                    # Update board size to match the loaded level if different
+                    if self.board_size != new_level_size:
+                        # Set the board size directly
+                        self.board_size = new_level_size
+                        
+                        # Use the MenuManager helper method to set the board size
+                        self.menu_manager.set_board_size(new_level_size)
+                        
+                        # Update the filtered levels for the new board size
+                        self.filter_levels_by_size()
+                        self.menu_manager.update_level_selector(self.filtered_levels)
+                    else:
+                        # If board size is the same, just update the filtered levels
+                        self.filter_levels_by_size()
+                        self.menu_manager.update_level_selector(self.filtered_levels)
+                    
+                    # Set the current level to the newly loaded one
+                    self.current_level_index = new_level_id
+                    
+                    # Try to update level selector dropdown to select the new level
+                    if self.menu_manager.level_selector:
+                        for i, (_, level_num) in enumerate(self.filtered_levels):
+                            if level_num == new_level_id:
+                                try:
+                                    self.menu_manager.level_selector.set_value(i)
+                                    break
+                                except Exception as e:
+                                    print(f"Warning: Could not update level selector: {e}")
+                    
+                    # Show success message
+                    self.show_loading_indicator(f"Level loaded successfully!", 2000, True)
+                else:
+                    # Show error message
+                    self.show_loading_indicator("Failed to load level. Check file format.", 3000, False)
+            
+            def on_cancel():
+                # This is only called if there's no previous menu
+                self.showing_dialog = False
+                self.current_dialog = None
+                self.show_main_menu()
+            
+            # Create and display the text input dialog
+            screen_size = (WINDOW_WIDTH, WINDOW_HEIGHT)
+            self.current_dialog = TextInputDialog.create_dialog(
+                screen_size, 
+                on_submit, 
+                on_cancel,
+                previous_menu  # Pass the previous menu to allow returning to it
+            )
+
+    def show_loading_indicator(self, message, duration=1000, success=False):
+        """Display a loading or status message as an overlay
+        
+        Args:
+            message: Message to display
+            duration: Duration in milliseconds
+            success: If True, show as success message (green), otherwise as error/info (red/blue)
+        """
+        # Create semi-transparent overlay 
+        overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 180))  # Semi-transparent black (180 alpha)
+        
+        # Create message box
+        message_width = 350
+        message_height = 80
+        message_box = pygame.Rect(
+            (WINDOW_WIDTH - message_width) // 2,
+            (WINDOW_HEIGHT - message_height) // 2,
+            message_width,
+            message_height
+        )
+        
+        # Different colors for success vs info/error
+        if success:
+            bg_color = (200, 255, 200, 250)  # Light green for success with high alpha
+            border_color = (0, 200, 0)   # Green border
+        elif message.startswith("Failed") or message.startswith("File not found"):
+            bg_color = (255, 200, 200, 250)  # Light red for error with high alpha
+            border_color = (200, 0, 0)   # Red border
+        else:
+            bg_color = (200, 200, 255, 250)  # Light blue for info with high alpha
+            border_color = (0, 0, 200)   # Blue border
+        
+        # Draw current screen first to preserve what's underneath
+        # Make sure menu_manager and current_menu exist before trying to draw
+        if hasattr(self, 'menu_manager') and self.menu_manager.current_menu is not None:
+            # Let the menu draw itself if it exists
+            self.menu_manager.current_menu.draw(self.screen)
+        else:
+            # If no menu is available, just fill with background color
+            self.screen.fill(BACKGROUND_COLOR)
+        
+        # Draw overlay on top
+        self.screen.blit(overlay, (0, 0))
+        
+        # Draw message box
+        message_surface = pygame.Surface((message_width, message_height), pygame.SRCALPHA)
+        message_surface.fill(bg_color)
+        pygame.draw.rect(message_surface, border_color, 
+                        pygame.Rect(0, 0, message_width, message_height), width=2, border_radius=10)
+        
+        # Round the corners of the message box
+        for corner in [(0, 0), (0, message_height-1), (message_width-1, 0), (message_width-1, message_height-1)]:
+            pygame.draw.circle(message_surface, bg_color, corner, 10)
+        
+        # Apply the rounded message box to the screen
+        self.screen.blit(message_surface, message_box)
+        
+        # Draw message text
+        message_font = pygame.font.SysFont('Arial', 20, bold=True)
+        
+        # Split message into multiple lines if needed
+        max_line_width = message_width - 20
+        lines = []
+        words = message.split(' ')
+        current_line = words[0] if words else ""
+        
+        for word in words[1:]:
+            test_line = current_line + ' ' + word
+            text_width = message_font.size(test_line)[0]
+            if text_width <= max_line_width:
+                current_line = test_line
+            else:
+                lines.append(current_line)
+                current_line = word
+        lines.append(current_line)
+        
+        # Draw each line
+        line_height = message_font.get_linesize()
+        total_text_height = line_height * len(lines)
+        start_y = message_box.y + (message_height - total_text_height) // 2
+        
+        for i, line in enumerate(lines):
+            message_text = message_font.render(line, True, DARK_GRAY)
+            text_width = message_text.get_width()
+            text_x = (WINDOW_WIDTH - text_width) // 2
+            text_y = start_y + i * line_height
+            self.screen.blit(message_text, (text_x, text_y))
+        
+        # Update display and wait
+        pygame.display.flip()
+        pygame.time.delay(duration)
+        
+        # After delay, return to the main menu if we're not in game
+        if not self.in_game:
+            self.show_main_menu()
+            # Refresh the display
+            pygame.display.flip()
     
     def process_game_events(self, event):
         """Process game events when in game mode."""

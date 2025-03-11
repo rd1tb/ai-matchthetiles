@@ -10,7 +10,20 @@ from level import Level
 from level_validator import LevelValidator
 
 
+
 class LevelManager:
+    # File character to color mapping for level loading
+    FILE_COLOR_MAP = {
+        "b": "blue",
+        "r": "red",
+        "g": "green",
+        "p": "purple",
+        "o": "orange",
+        "y": "yellow",
+        "c": "cyan",
+    }
+
+    #Dictionary of predefined levels
     PREDEFINED_LEVELS = {
         1: [Level(
             GameState(
@@ -300,6 +313,9 @@ class LevelManager:
                     self.levels[k].extend([v] if not isinstance(v, list) else v)
                 else:
                     self.levels[k] = [v] if not isinstance(v, list) else v
+        
+        # Track the last loaded level
+        self.last_loaded_level_id = None
 
     def get_level(self, level_index: int) -> Level:
         """Gets a random level from the specified level index.
@@ -354,15 +370,37 @@ class LevelManager:
         else:
             self.levels[level_index] = [level]
 
+    def map_color_code_to_name(self, color_code: str) -> str:
+        """Maps a single-character color code to its full color name.
+        
+        Args:
+            color_code (str): The single-character color code
+            
+        Returns:
+            str: The full color name or the original code if not found in the map
+        """
+        # Convert to lowercase to handle both uppercase and lowercase codes
+        color_code = color_code.lower()
+        
+        # Check if the color code is in the map
+        if color_code in self.FILE_COLOR_MAP:
+            return self.FILE_COLOR_MAP[color_code]
+        
+        # If not found in the map, return black
+        return "black"
+
     def load_level_from_file(self, file_path: str):
         """Loads a level from a file and adds it to the manager.
 
         Args:
             file_path (str): The path to the file containing the level.
+            
+        Returns:
+            int: The level ID of the loaded level, or None if loading failed
         """
         if not os.path.exists(file_path):
             print(f"Error! Did not manage to load a level from {file_path}: file does not exist.")
-            return
+            return None
 
         file_name = os.path.splitext(os.path.basename(file_path))[0]
         match = re.search(r'\d+', file_name)
@@ -384,9 +422,13 @@ class LevelManager:
                 elif cell == '_':
                     blanks.append((j, i))
                 elif cell.isupper():
-                    targets[(j, i)] = cell.lower()
-                else:
-                    tiles[(j, i)] = cell.lower()
+                    # Map uppercase letters to full color names for targets
+                    color_name = self.map_color_code_to_name(cell.lower())
+                    targets[(j, i)] = color_name
+                elif cell != ' ':
+                    # Map lowercase letters to full color names for tiles
+                    color_name = self.map_color_code_to_name(cell)
+                    tiles[(j, i)] = color_name
 
         if len(lines) > size:
             try:
@@ -399,6 +441,11 @@ class LevelManager:
         game_state = GameState(tiles=tiles, targets=targets, blanks=blanks, blockers=blockers, size=size)
         level = Level(initial_state=game_state, optimal_moves=read_optimal_moves)
         if not self.validator.validate_level(level):
-            return
+            return None
 
         self.add_level(level_index, level)
+        
+        # Store the ID of the loaded level
+        self.last_loaded_level_id = level_index
+        
+        return level_index
