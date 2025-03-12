@@ -57,6 +57,7 @@ class LevelLoader:
             success, level_info = self.load_level_from_file(file_path)
             
             if success:
+                self.show_loading_indicator("Level loaded successfully!", 1500, True)
                 callback_on_complete(True, level_info)
             else:
                 # Show error message
