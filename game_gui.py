@@ -171,6 +171,11 @@ class GameGUI:
             self.sound_manager.play_sound('button')
             self.dialog_manager.close_dialog()
             self.game_session_manager.showing_dialog = False
+            
+            # Before exiting to main menu, update the board size based on the current level
+            if self.game_session_manager.current_level_index is not None:
+                self.update_board_size_from_level(self.game_session_manager.current_level_index)
+                
             self.game_session_manager.exit_game()
             self.show_main_menu()
         
@@ -284,12 +289,14 @@ class GameGUI:
                 self.handle_player_level_completion()
                 return
             
-            # Handle menu and exit buttons separately since they're not part of game logic
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
                 for element_name, rect in ui_elements.items():
                     if rect.collidepoint(mouse_pos):
                         if element_name == 'menu':
+                            # Before exiting, update the board size based on the current level
+                            if self.game_session_manager.current_level_index is not None:
+                                self.update_board_size_from_level(self.game_session_manager.current_level_index)
                             self.game_session_manager.exit_game()
                             self.show_main_menu()
                         elif element_name == 'exit':
@@ -316,6 +323,11 @@ class GameGUI:
             self.sound_manager.play_sound('button')
             self.dialog_manager.close_dialog()
             self.game_session_manager.showing_dialog = False
+            
+            # Before exiting to main menu, update the board size based on the current level
+            if self.game_session_manager.current_level_index is not None:
+                self.update_board_size_from_level(self.game_session_manager.current_level_index)
+                
             self.game_session_manager.exit_game()
             self.show_main_menu()
         
@@ -378,6 +390,9 @@ class GameGUI:
             for element_name, rect in ui_elements.items():
                 if rect.collidepoint(mouse_pos):
                     if element_name == 'menu':
+                        # Before exiting, update the board size based on the current level
+                        if self.game_session_manager.current_level_index is not None:
+                            self.update_board_size_from_level(self.game_session_manager.current_level_index)
                         self.game_session_manager.exit_game()
                         self.show_main_menu()
                     elif element_name == 'exit':
@@ -425,6 +440,18 @@ class GameGUI:
             
     def show_main_menu(self):
         """Display the main menu."""
+        # Before creating the menu, check if we need to update the board size
+        # based on the current level index
+        if self.game_session_manager.current_level_index is not None:
+            level = self.level_manager.get_level(self.game_session_manager.current_level_index)
+            if level and level.initial_state:
+                current_size = level.initial_state.size
+                if self.game_session_manager.board_size != current_size:
+                    # Update board size while preserving the current level index
+                    old_level_index = self.game_session_manager.current_level_index
+                    self.game_session_manager.change_board_size(current_size)
+                    self.game_session_manager.current_level_index = old_level_index
+        
         self.game_session_manager.exit_game()
         self.dialog_manager.close_dialog()
         
@@ -467,6 +494,31 @@ class GameGUI:
                         break
                     except Exception as e:
                         print(f"Error setting level selector to current level: {e}")
+
+    def update_board_size_from_level(self, level_index):
+        """Update the board size based on a level index and ensure current level is preserved
+        
+        Args:
+            level_index: The level index to get the size from
+        """
+        # Store the current level index before changing anything
+        current_level_index = level_index
+        
+        # Get the level and its size
+        level = self.level_manager.get_level(level_index)
+        if level and level.initial_state:
+            current_size = level.initial_state.size
+            if self.game_session_manager.board_size != current_size:             
+                # First change the board size in the session manager
+                # This will reset the current_level_index to the first level of the new size
+                self.game_session_manager.change_board_size(current_size)
+                
+                # Restore the correct level index after changing board size
+                self.game_session_manager.current_level_index = current_level_index
+                
+                # Update the menu UI to match
+                if self.menu_manager.board_size_selector:
+                    self.menu_manager.set_board_size(current_size)
 
     def change_board_size(self, _, size):
         """Handle board size change from the menu
