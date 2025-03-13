@@ -238,3 +238,5 @@ fabric.properties
 
 # PyPI configuration file
 .pypirc
+
+.DS_Store
