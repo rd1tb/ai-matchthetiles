@@ -32,7 +32,7 @@ class SoundManager:
         # Define ducking amounts for different sound types
         self.ducking_amounts = {
             'win': 0.1,       # Reduce to 10% for win sounds
-            'error': 0.05      # Reduce to 10% for error sounds
+            'error': 0.05      # Reduce to 5% for error sounds
         }
         self.default_ducking_amount = 0.1  # Default ducking amount for unlisted ducking sounds
         

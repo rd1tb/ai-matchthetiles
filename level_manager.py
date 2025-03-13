@@ -295,16 +295,12 @@ class LevelManager:
         """
         self.validator = LevelValidator()
         
-        # Initialize with the predefined levels (one level per index)
         self.levels = SortedDict(self.PREDEFINED_LEVELS)
                 
-        # Add any additional levels provided
         if additional_levels:
             for level_idx, level in additional_levels.items():
-                # Use our add_level method to handle potential index collisions
                 self.add_level(level_idx, level)
         
-        # Track the last loaded level
         self.last_loaded_level_id = None
         
         # Counter for custom levels, starting from 999 and decreasing
@@ -390,12 +386,9 @@ class LevelManager:
         for level_index, level in self.levels.items():
             try:
                 if level.initial_state.size == size:
-                    # Create tuple of (display_name, level_id)
                     display_name = f"Level {level_index}"
                     result.append((display_name, level_index))
             except AttributeError:
-                # Skip entries that don't have the expected structure
                 continue
         
-        # Sort by level index for consistent ordering
         return sorted(result, key=lambda x: x[1])

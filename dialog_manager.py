@@ -14,7 +14,7 @@ class DialogManager:
         self.screen = screen
         self.menu_manager = menu_manager
         self.current_dialog = None
-        self.background_surface = None  # Add a surface to store the background
+        self.background_surface = None
     
     def capture_background(self):
         """Capture the current screen as background for dialog"""

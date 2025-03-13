@@ -51,10 +51,8 @@ class MenuManager:
             filtered_levels: List of (level_name, level_id) tuples
             current_board_size: Currently selected board size
         """
-        # Create a subclass of Menu that draws credits at the bottom
         class MenuWithCredits(pygame_menu.Menu):
             def draw(self, surface):
-                # Call the parent class draw method first
                 super().draw(surface)
                 
                 # Draw credits bar at the bottom after everything else
@@ -69,7 +67,6 @@ class MenuManager:
                 
                 return True
         
-        # Use our custom Menu subclass
         self.current_menu = MenuWithCredits(
             'Match The Tiles', 
             self.screen_width, 
@@ -150,7 +147,6 @@ class MenuManager:
             win_dialog.add.label(f"Perfect score is {optimal_moves} moves.")
 
         if next_level_info:
-            # Add Next Level as the first interactive widget
             win_dialog.add.button('Next Level', on_next_level)
         else:
             win_dialog.add.label("You reached the end of the game!")
@@ -180,7 +176,7 @@ class MenuManager:
         
         # Use the default gray theme
         ai_theme = pygame_menu.themes.THEME_DEFAULT.copy()
-        ai_theme.widget_font_size = 26  # Set larger font size for all widgets
+        ai_theme.widget_font_size = 26
         
         ai_theme.title_font_size = 32
         # Use the algorithm name directly as the dialog title
@@ -192,7 +188,7 @@ class MenuManager:
             height,
             theme=ai_theme,
             columns=1,
-            rows=15  # Increased number of rows to accommodate all widgets
+            rows=15
         )
         
         # Solution info
@@ -292,7 +288,6 @@ class MenuManager:
             bool: True if events were handled by the menu
         """
         if self.current_menu and self.current_menu.is_enabled():
-            # Check for mouse clicks to play button sounds
             for event in events:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     # Don't process sound further here

@@ -32,7 +32,6 @@ class LevelLoader:
         self.screen = screen
         self.sound_manager = sound_manager
         
-        # Stores information about custom loaded levels
         self.last_loaded_custom_level = None
     
     def load_custom_level_dialog(self, callback_on_complete):
@@ -48,7 +47,6 @@ class LevelLoader:
         def on_submit(file_path):
             # Check if file exists
             if not os.path.isfile(file_path):
-                # Play error sound if available
                 if self.sound_manager:
                     self.sound_manager.play_sound('error')
                 self.show_loading_indicator("File not found. Please check the path.", 3000, False)
@@ -62,20 +60,16 @@ class LevelLoader:
             success, level_info = self.load_level_from_file(file_path)
             
             if success:
-                # Success indicator - but don't play sound here to avoid double sound
                 # The sound will be played by the callback in game_gui.py
                 self.show_loading_indicator("Level loaded successfully!", 1500, True)
                 callback_on_complete(True, level_info)
             else:
-                # Error sound and indicator
                 if self.sound_manager:
                     self.sound_manager.play_sound('error')
-                # Show error message
                 self.show_loading_indicator("Failed to load level. Check file format.", 3000, False)
                 callback_on_complete(False)
         
         def on_cancel():
-            # Button sound if available
             if self.sound_manager:
                 self.sound_manager.play_sound('button')
             callback_on_complete(False)
@@ -86,7 +80,7 @@ class LevelLoader:
             screen_size, 
             on_submit, 
             on_cancel,
-            self.sound_manager  # Pass sound manager to dialog
+            self.sound_manager
         )
         
         return dialog, True
@@ -127,10 +121,10 @@ class LevelLoader:
             return False, None
 
         try:
-            # Extract level index from filename, or use 0 if not found
+            # Extract level index from filename, or use 999 if not found
             file_name = os.path.splitext(os.path.basename(file_path))[0]
             match = re.search(r'\d+', file_name)
-            level_index = int(match.group()) if match else 0
+            level_index = int(match.group()) if match else 999
 
             # Read the level file
             with open(file_path, 'r') as file:
@@ -203,11 +197,9 @@ class LevelLoader:
             duration: Duration in milliseconds
             success: If True, show as success message (green), otherwise as error/info (red/blue)
         """
-        # Play appropriate sound if sound manager exists and this isn't just a loading message
         if self.sound_manager and not message.startswith("Loading"):
             if success:
                 # Success sound for successful operations - don't play here to avoid duplicates
-                # The calling function should handle success sounds
                 pass
             else:
                 # Error sound for errors

@@ -62,7 +62,6 @@ class PlayerGameRenderer(BoardRenderer):
         # Draw board
         cell_size = self.draw_board(state, start_x, start_y)
         
-        # Store button rectangles for hit testing
         ui_elements = {}
         
         # Draw game control buttons on the right side

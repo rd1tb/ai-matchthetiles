@@ -37,7 +37,7 @@ class GameSessionManager:
         
         # Safety check - make sure a level is selected
         if self.current_level_index is None and self.filtered_levels:
-            self.current_level_index = self.filtered_levels[0][1]  # First level ID in filtered list
+            self.current_level_index = self.filtered_levels[0][1]
         
         # Start the game controller with the selected level
         self.game_controller.start_game(self.current_level_index, ai_mode)
@@ -87,10 +87,8 @@ class GameSessionManager:
         """
         # Handle level selection from dropdown
         if isinstance(selected_value, tuple):
-            # If it's a tuple like (display_name, level_id)
             self.current_level_index = selected_value[1]
         else:
-            # If it's just the index in the filtered levels list
             if 0 <= selected_value < len(self.filtered_levels):
                 self.current_level_index = self.filtered_levels[selected_value][1]
     

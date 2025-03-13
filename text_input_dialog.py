@@ -41,7 +41,6 @@ class TextInputDialog:
             menu_height,
             theme=theme,
             enabled=True,
-            # Use the callback for onclose, we'll handle navigation manually
             onclose=on_cancel
         )
         
@@ -65,12 +64,10 @@ class TextInputDialog:
             
             # Validate the input
             if not path.strip():
-                # Play error sound if sound manager is available
                 if sound_manager:
                     sound_manager.play_sound('error')
                 return
                 
-            # Play button sound if sound manager is available
             if sound_manager:
                 sound_manager.play_sound('button')
             
@@ -80,7 +77,6 @@ class TextInputDialog:
         
         # Create a custom wrapper for the cancel callback
         def cancel_wrapper():
-            # Play button sound if sound manager is available
             if sound_manager:
                 sound_manager.play_sound('button')
             

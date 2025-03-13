@@ -58,7 +58,6 @@ class GameGUI:
         self.dialog_manager = DialogManager(self.screen, self.menu_manager)
         self.level_loader = LevelLoader(self.level_manager, self.menu_manager, self.screen)
         
-        # Pass the sound manager to level_loader
         self.level_loader.sound_manager = self.sound_manager
         
         # Initialize game state
@@ -135,7 +134,7 @@ class GameGUI:
             
             solution_complete, _ = self.game_controller.apply_solution_step()
             
-            # Play swoosh sound when a step is actually taken
+            # Play swish sound when a step is actually taken
             if self.game_controller.current_solution_step > current_step:
                 self.sound_manager.play_sound('swish')
             
@@ -177,7 +176,7 @@ class GameGUI:
         
         # Show the AI completion dialog with the algorithm name
         self.dialog_manager.show_ai_complete_message(
-            self.current_algorithm_name,  # Pass the algorithm name
+            self.current_algorithm_name,
             len(self.game_controller.solution_path),
             self.game_controller.optimal_moves,
             self.game_controller.algorithm_metrics,
@@ -198,9 +197,8 @@ class GameGUI:
         """
         next_level_tuple = self.level_manager.get_next_level(self.game_session_manager.current_level_index)
         
-        # Convert tuple to dictionary format if it exists
         if next_level_tuple:
-            next_level_num, next_level = next_level_tuple
+            next_level_num, _ = next_level_tuple
             return {
                 'level_index': next_level_num,
                 'name': f'Level {next_level_num}'
@@ -245,13 +243,11 @@ class GameGUI:
             mouse_pos = pygame.mouse.get_pos()
             
             # Play button sound for any UI control that is clicked
-            clicked_button = False
             for element_name, rect in ui_elements.items():
                 if rect.collidepoint(mouse_pos):
                     # Play button sound for all controls except directional buttons
                     if element_name not in ['up', 'down', 'left', 'right']:
                         self.sound_manager.play_sound('button')
-                        clicked_button = True
                     
                     # Special handling for hint button
                     if element_name == 'hint':
@@ -304,7 +300,7 @@ class GameGUI:
         # First draw the final board state before showing win message
         self.draw_game()
         pygame.display.flip()
-        pygame.time.delay(300)  # Give 300ms to see the final state
+        pygame.time.delay(300)
         
         # Get next level info
         next_level_info = self.get_next_level_info()
@@ -343,11 +339,11 @@ class GameGUI:
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_pos = pygame.mouse.get_pos()
             
-            # Play button sound for any UI element that is clicked (will be handled by the sound cooldown)
+            # Play button sound for any UI element that is clicked
             for element_name, rect in ui_elements.items():
                 if rect.collidepoint(mouse_pos):
                     self.sound_manager.play_sound('button')
-                    break  # Only play the sound once
+                    break
         
         algorithm_selected, algorithm_name = self.game_controller.process_ai_event(event, ui_elements)
         
@@ -510,7 +506,6 @@ class GameGUI:
             if success:
                 self.sound_manager.play_sound('win')
             else:
-                # Error sound should have been played by level_loader
                 pass
                 
             self.game_session_manager.showing_dialog = False
