@@ -456,6 +456,18 @@ class GameGUI:
                     except Exception as e:
                         print(f"Error setting level selector to custom level: {e}")
 
+        # Set the level selector to match the current_level_index from game_session_manager
+        # This ensures the UI matches the backend state
+        elif self.game_session_manager.current_level_index is not None and self.menu_manager.level_selector:
+            # Find the index of the current level in the filtered levels list
+            for i, (_, level_id) in enumerate(self.game_session_manager.filtered_levels):
+                if level_id == self.game_session_manager.current_level_index:
+                    try:
+                        self.menu_manager.level_selector.set_value(i)
+                        break
+                    except Exception as e:
+                        print(f"Error setting level selector to current level: {e}")
+
     def change_board_size(self, _, size):
         """Handle board size change from the menu
         
