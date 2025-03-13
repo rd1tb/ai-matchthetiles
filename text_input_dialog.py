@@ -6,13 +6,14 @@ class TextInputDialog:
     """Simple text input dialog for entering file paths"""
     
     @staticmethod
-    def create_dialog(screen_size, on_submit, on_cancel):
+    def create_dialog(screen_size, on_submit, on_cancel, sound_manager=None):
         """Create a text input dialog for entering a file path
         
         Args:
             screen_size: Tuple of (width, height)
             on_submit: Callback when path is submitted (receives path)
             on_cancel: Callback when the dialog is cancelled
+            sound_manager: Optional SoundManager instance for sound effects
             
         Returns:
             pygame_menu.Menu: The text input dialog menu
@@ -59,12 +60,30 @@ class TextInputDialog:
         
         # Create a custom wrapper for the on_submit callback to pass the path value
         def submit_wrapper():
+            # Get the entered path
+            path = path_input.get_value()
+            
+            # Validate the input
+            if not path.strip():
+                # Play error sound if sound manager is available
+                if sound_manager:
+                    sound_manager.play_sound('error')
+                return
+                
+            # Play button sound if sound manager is available
+            if sound_manager:
+                sound_manager.play_sound('button')
+            
             # Close the dialog first, then submit
             dialog.disable()
-            on_submit(path_input.get_value())
+            on_submit(path)
         
         # Create a custom wrapper for the cancel callback
         def cancel_wrapper():
+            # Play button sound if sound manager is available
+            if sound_manager:
+                sound_manager.play_sound('button')
+            
             dialog.disable()
             on_cancel()
         

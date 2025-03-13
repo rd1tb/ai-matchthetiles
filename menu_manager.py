@@ -40,6 +40,10 @@ class MenuManager:
         # Store board size options for easy reference
         self.board_size_options = [('4x4', 4), ('5x5', 5), ('6x6', 6)]
         
+        # Track sound state to prevent duplicate sounds
+        self.last_sound_time = 0
+        self.sound_cooldown = 150  # 150ms minimum between menu sounds
+        
     def create_main_menu(self, filtered_levels, current_board_size):
         """Create and show the main menu
         
@@ -47,7 +51,26 @@ class MenuManager:
             filtered_levels: List of (level_name, level_id) tuples
             current_board_size: Currently selected board size
         """
-        self.current_menu = pygame_menu.Menu(
+        # Create a subclass of Menu that draws credits at the bottom
+        class MenuWithCredits(pygame_menu.Menu):
+            def draw(self, surface):
+                # Call the parent class draw method first
+                super().draw(surface)
+                
+                # Draw credits bar at the bottom after everything else
+                rect = pygame.Rect(0, self.get_height() - 40, self.get_width(), 40)
+                pygame.draw.rect(surface, self._theme.title_background_color, rect)
+                
+                # Draw the text centered
+                font = pygame.font.SysFont('Arial', 18)
+                text = font.render('António Coelho, Dominika Olszewska, João Marinho', True, self._theme.title_font_color)
+                text_x = (self.get_width() - text.get_width()) // 2
+                surface.blit(text, (text_x, self.get_height() - 27))
+                
+                return True
+        
+        # Use our custom Menu subclass
+        self.current_menu = MenuWithCredits(
             'Match The Tiles', 
             self.screen_width, 
             self.screen_height,
@@ -111,7 +134,7 @@ class MenuManager:
         else:
             width = 600
             height = 400
-            theme = pygame_menu.themes.THEME_DARK
+            theme = pygame_menu.themes.THEME_ORANGE
 
         win_dialog = pygame_menu.Menu(
             'You Won!', 
@@ -269,6 +292,14 @@ class MenuManager:
             bool: True if events were handled by the menu
         """
         if self.current_menu and self.current_menu.is_enabled():
+            # Check for mouse clicks to play button sounds
+            for event in events:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    # Don't process sound further here
+                    # The sound will be played by the respective button callbacks
+                    pass
+            
+            # Let the menu handle the events
             self.current_menu.update(events)
             self.current_menu.draw(pygame.display.get_surface())
             pygame.display.update()

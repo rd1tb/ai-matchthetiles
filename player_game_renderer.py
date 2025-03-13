@@ -8,6 +8,7 @@ class PlayerGameRenderer(BoardRenderer):
     
     def __init__(self, screen, fonts):
         super().__init__(screen, fonts)
+        self.game_controller = None
         
     def draw(self, state, level_index, moves_count, optimal_moves, hint_info=None, hint_thinking=False):
         """Draw the player's game view
@@ -104,16 +105,18 @@ class PlayerGameRenderer(BoardRenderer):
         ui_elements['restart'] = reset_rect
         
         # Draw "No hint available" message and arrow if no hint
-        if hasattr(self, 'game_controller') and hasattr(self.game_controller, 'no_hint_available') and self.game_controller.no_hint_available:
+        if self.game_controller and self.game_controller.no_hint_available:
             current_time = pygame.time.get_ticks()
-            if current_time - self.game_controller.no_hint_start_time < NO_HINT_DURATION:
+            elapsed = current_time - self.game_controller.no_hint_start_time
+            
+            if elapsed < NO_HINT_DURATION:
                 # Display the "No hint available" message in top right
                 no_hint_text = "No hint available!"
                 no_hint_surface = self.fonts['regular'].render(no_hint_text, True, (200, 0, 0))  # Red text
                 no_hint_x = start_x + board_width - no_hint_surface.get_width()
                 self.screen.blit(no_hint_surface, (no_hint_x, 60))
                 
-                # Draw an oscillating arrow pointing to the reset button, similar to hint arrow but bigger
+                # Draw an oscillating arrow pointing to the reset button
                 oscillation = math.sin(current_time / 200) * 10  # Oscillate by 10 pixels
                 
                 # Arrow dimensions
@@ -124,8 +127,7 @@ class PlayerGameRenderer(BoardRenderer):
                 arrow_center_x = reset_rect.centerx
                 arrow_center_y = reset_rect.top - arrow_height // 2 - 20 + oscillation
                 
-                # Draw arrow pointing down with a shaft (like the hint SlideDown arrow)
-                # Arrow tip points downward toward the restart button
+                # Draw arrow pointing down with a shaft
                 arrow_tip = (arrow_center_x, arrow_center_y + arrow_height // 2)  # Bottom tip
                 arrow_left = (arrow_center_x - arrow_width // 2, arrow_center_y)  # Top left of arrowhead
                 arrow_right = (arrow_center_x + arrow_width // 2, arrow_center_y)  # Top right of arrowhead
@@ -145,9 +147,6 @@ class PlayerGameRenderer(BoardRenderer):
                 # Draw shaft
                 pygame.draw.rect(self.screen, THEME_BLUE_ARROW, shaft_rect)
                 pygame.draw.rect(self.screen, WHITE, shaft_rect, 2)  # White border
-            else:
-                # Time's up, reset the flag
-                self.game_controller.no_hint_available = False
         
         # Hint button
         hint_rect = pygame.Rect(right_panel_x, reset_rect.bottom + button_spacing, button_width, button_height)

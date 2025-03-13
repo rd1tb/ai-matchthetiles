@@ -18,17 +18,19 @@ class LevelLoader:
         "c": "cyan",
     }
     
-    def __init__(self, level_manager, menu_manager, screen):
+    def __init__(self, level_manager, menu_manager, screen, sound_manager=None):
         """Initialize the level loader
         
         Args:
             level_manager: LevelManager instance
             menu_manager: MenuManager instance
             screen: pygame display surface
+            sound_manager: Optional SoundManager instance
         """
         self.level_manager = level_manager
         self.menu_manager = menu_manager
         self.screen = screen
+        self.sound_manager = sound_manager
         
         # Stores information about custom loaded levels
         self.last_loaded_custom_level = None
@@ -46,6 +48,9 @@ class LevelLoader:
         def on_submit(file_path):
             # Check if file exists
             if not os.path.isfile(file_path):
+                # Play error sound if available
+                if self.sound_manager:
+                    self.sound_manager.play_sound('error')
                 self.show_loading_indicator("File not found. Please check the path.", 3000, False)
                 callback_on_complete(False)
                 return
@@ -57,14 +62,22 @@ class LevelLoader:
             success, level_info = self.load_level_from_file(file_path)
             
             if success:
+                # Success indicator - but don't play sound here to avoid double sound
+                # The sound will be played by the callback in game_gui.py
                 self.show_loading_indicator("Level loaded successfully!", 1500, True)
                 callback_on_complete(True, level_info)
             else:
+                # Error sound and indicator
+                if self.sound_manager:
+                    self.sound_manager.play_sound('error')
                 # Show error message
                 self.show_loading_indicator("Failed to load level. Check file format.", 3000, False)
                 callback_on_complete(False)
         
         def on_cancel():
+            # Button sound if available
+            if self.sound_manager:
+                self.sound_manager.play_sound('button')
             callback_on_complete(False)
         
         # Create and display the text input dialog
@@ -72,7 +85,8 @@ class LevelLoader:
         dialog = TextInputDialog.create_dialog(
             screen_size, 
             on_submit, 
-            on_cancel
+            on_cancel,
+            self.sound_manager  # Pass sound manager to dialog
         )
         
         return dialog, True
@@ -181,7 +195,7 @@ class LevelLoader:
             print(f"Error loading level: {e}")
             return False, None
 
-    def show_loading_indicator(self, message, duration=1000, success=False):
+    def show_loading_indicator(self, message, duration=1000, success=True):
         """Display a loading or status message as an overlay
         
         Args:
@@ -189,6 +203,16 @@ class LevelLoader:
             duration: Duration in milliseconds
             success: If True, show as success message (green), otherwise as error/info (red/blue)
         """
+        # Play appropriate sound if sound manager exists and this isn't just a loading message
+        if self.sound_manager and not message.startswith("Loading"):
+            if success:
+                # Success sound for successful operations - don't play here to avoid duplicates
+                # The calling function should handle success sounds
+                pass
+            else:
+                # Error sound for errors
+                self.sound_manager.play_sound('error')
+                
         # Create semi-transparent overlay 
         overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
         overlay.fill((0, 0, 0, 180))  # Semi-transparent black (180 alpha)

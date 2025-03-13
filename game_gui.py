@@ -12,6 +12,8 @@ from game_controller import GameController
 from level_loader import LevelLoader
 from dialog_manager import DialogManager
 from game_session_manager import GameSessionManager
+from sound_manager import SoundManager  # Import sound manager
+from move import SlideUp, SlideDown, SlideLeft, SlideRight  # Import for keyboard handling
 
 class GameGUI:
     def __init__(self):
@@ -27,6 +29,9 @@ class GameGUI:
             'regular': pygame.font.SysFont('Arial', 24),
             'small': pygame.font.SysFont('Arial', 20)
         }
+        
+        # Initialize sound manager
+        self.sound_manager = SoundManager()
         
         # Setup core game components
         self.level_manager = LevelManager()
@@ -53,11 +58,17 @@ class GameGUI:
         self.dialog_manager = DialogManager(self.screen, self.menu_manager)
         self.level_loader = LevelLoader(self.level_manager, self.menu_manager, self.screen)
         
+        # Pass the sound manager to level_loader
+        self.level_loader.sound_manager = self.sound_manager
+        
         # Initialize game state
         self.current_algorithm_name = None
     
     def run(self):
         """Main game loop."""
+        # Start playing background music when the game starts
+        self.sound_manager.play_music()
+        
         self.show_main_menu()
         
         while self.game_session_manager.running:
@@ -80,6 +91,14 @@ class GameGUI:
                 pygame.display.flip()
             elif self.game_session_manager.showing_dialog:
                 if self.dialog_manager.current_dialog:
+                    # Check for sound events before updating dialog
+                    if events:
+                        for event in events:
+                            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                                # Only play button sound if a button is actually clicked
+                                # The dialog will handle the sound itself via callbacks
+                                pass
+                    
                     try:
                         self.dialog_manager.update_dialog(events)
                     except Exception as e:
@@ -95,6 +114,7 @@ class GameGUI:
                     self.show_main_menu()
             else:
                 if self.menu_manager.current_menu:
+                    # Handle menu events
                     self.menu_manager.handle_events(events)
                 else:
                     # If menu should be shown but doesn't exist, recreate it
@@ -102,14 +122,26 @@ class GameGUI:
                     self.show_main_menu()
             
             self.clock.tick(FPS)
+        
+        # Stop music when exiting
+        self.sound_manager.stop_music()
 
     def update_ai_solution(self):
         """Handle AI solution progress and completion."""
         # Only process if there's an active solution path
         if self.game_controller.solution_path:
+            # Store current step before update
+            current_step = self.game_controller.current_solution_step
+            
             solution_complete, _ = self.game_controller.apply_solution_step()
             
+            # Play swoosh sound when a step is actually taken
+            if self.game_controller.current_solution_step > current_step:
+                self.sound_manager.play_sound('swish')
+            
             if solution_complete:
+                # Play win sound when solution is complete
+                self.sound_manager.play_sound('win')
                 self.handle_ai_solution_completion()
 
     def handle_ai_solution_completion(self):
@@ -124,17 +156,20 @@ class GameGUI:
         
         # Define callback functions for the dialog
         def on_next_level():
+            self.sound_manager.play_sound('button')
             self.dialog_manager.close_dialog()
             self.game_session_manager.showing_dialog = False
             self.game_session_manager.load_next_level(next_level_info)
         
         def on_return_to_game():
+            self.sound_manager.play_sound('button')
             self.dialog_manager.close_dialog()
             self.game_session_manager.showing_dialog = False
             self.game_controller.restart_level()
             self.game_session_manager.in_game = True
         
         def on_main_menu():
+            self.sound_manager.play_sound('button')
             self.dialog_manager.close_dialog()
             self.game_session_manager.showing_dialog = False
             self.game_session_manager.exit_game()
@@ -176,30 +211,80 @@ class GameGUI:
         """Process game events for player mode."""
         ui_elements = self.draw_game()
         
+        # Store the initial moves count to detect new moves
+        initial_moves = self.game_controller.moves_count
+        
+        # Check for keyboard events and play sounds for valid moves
+        if event.type == pygame.KEYDOWN:
+            move_made = False
+            
+            if event.key == pygame.K_LEFT:
+                move_made = self.game_controller.apply_move(SlideLeft())
+                
+            elif event.key == pygame.K_RIGHT:
+                move_made = self.game_controller.apply_move(SlideRight())
+                
+            elif event.key == pygame.K_UP:
+                move_made = self.game_controller.apply_move(SlideUp())
+                
+            elif event.key == pygame.K_DOWN:
+                move_made = self.game_controller.apply_move(SlideDown())
+            
+            # If a valid move was made, play swoosh sound
+            if move_made:
+                self.sound_manager.play_sound('swish')
+                
+            # Check for game completion
+            if move_made and self.game_controller.is_solved():
+                self.sound_manager.play_sound('win')
+                self.handle_player_level_completion()
+                return
+        
         # Check for hint button clicks before processing other events
         if event.type == pygame.MOUSEBUTTONDOWN and not self.game_session_manager.hint_thinking:
             mouse_pos = pygame.mouse.get_pos()
+            
+            # Play button sound for any UI control that is clicked
+            clicked_button = False
             for element_name, rect in ui_elements.items():
-                if rect.collidepoint(mouse_pos) and element_name == 'hint':
-                    self.game_session_manager.hint_thinking = True
-                    # Draw the screen with "Thinking..." immediately
-                    self.draw_game()
-                    pygame.display.flip()
-                    # Generate hint
-                    hint_info = self.game_controller.show_hint()
-                    self.game_session_manager.hint_thinking = False
+                if rect.collidepoint(mouse_pos):
+                    # Play button sound for all controls except directional buttons
+                    if element_name not in ['up', 'down', 'left', 'right']:
+                        self.sound_manager.play_sound('button')
+                        clicked_button = True
                     
-                    # If no hint is available, set the no_hint flag to display the message
-                    if hint_info and hint_info.get('no_hint'):
-                        self.game_controller.no_hint_available = True
-                        self.game_controller.no_hint_start_time = pygame.time.get_ticks()
-                    return
+                    # Special handling for hint button
+                    if element_name == 'hint':
+                        self.game_session_manager.hint_thinking = True
+                        # Draw the screen with "Thinking..." immediately
+                        self.draw_game()
+                        pygame.display.flip()
+                        # Generate hint
+                        hint_info = self.game_controller.show_hint()
+                        self.game_session_manager.hint_thinking = False
+                        
+                        # If no hint is available, set the no_hint flag to display the message
+                        if hint_info and hint_info.get('no_hint'):
+                            self.game_controller.no_hint_available = True
+                            self.game_controller.no_hint_start_time = pygame.time.get_ticks()
+                            # Play error sound for no hint available
+                            self.sound_manager.play_sound('error')
+                        return
+                    
+                    # For directional buttons, don't play sound yet
+                    # The sound will be played after the move is processed
+                    break
         
         # If not processing a hint request, handle other events
         if not self.game_session_manager.hint_thinking:
             is_solved = self.game_controller.process_player_event(event, ui_elements)
             
+            # Play swoosh sound if a move was made (moves count increased)
+            if self.game_controller.moves_count > initial_moves:
+                self.sound_manager.play_sound('swish')
+            
             if is_solved:
+                self.sound_manager.play_sound('win')
                 self.handle_player_level_completion()
                 return
             
@@ -225,12 +310,14 @@ class GameGUI:
         next_level_info = self.get_next_level_info()
         
         def on_next_level():
+            self.sound_manager.play_sound('button')
             self.dialog_manager.close_dialog()
             self.game_session_manager.showing_dialog = False
             if next_level_info:
                 self.game_session_manager.load_next_level(next_level_info)
         
         def on_main_menu():
+            self.sound_manager.play_sound('button')
             self.dialog_manager.close_dialog()
             self.game_session_manager.showing_dialog = False
             self.game_session_manager.exit_game()
@@ -252,7 +339,16 @@ class GameGUI:
         """Process game events for AI mode."""
         ui_elements = self.draw_ai_game()
         
-        # Check for algorithm button clicks
+        # Check for mouse clicks to play button sounds
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_pos = pygame.mouse.get_pos()
+            
+            # Play button sound for any UI element that is clicked (will be handled by the sound cooldown)
+            for element_name, rect in ui_elements.items():
+                if rect.collidepoint(mouse_pos):
+                    self.sound_manager.play_sound('button')
+                    break  # Only play the sound once
+        
         algorithm_selected, algorithm_name = self.game_controller.process_ai_event(event, ui_elements)
         
         if algorithm_selected:
@@ -272,6 +368,8 @@ class GameGUI:
             self.game_session_manager.ai_thinking = False
             
             if not success:
+                # Play error sound when algorithm fails to find a solution
+                self.sound_manager.play_sound('error')
                 # Show error message if algorithm failed
                 self.level_loader.show_loading_indicator(
                     f"Algorithm failed to find a solution!",
@@ -369,6 +467,9 @@ class GameGUI:
             _: Placeholder for selector widget
             size: New board size
         """
+        # Play button sound for size change
+        self.sound_manager.play_sound('button')
+        
         # Use game session manager to change the board size
         if self.game_session_manager.change_board_size(size):
             # Update the menu with the new filtered levels
@@ -381,21 +482,37 @@ class GameGUI:
             _: Placeholder for selector widget
             selected_value: Selected level index or ID
         """
+        # Play button sound for level change
+        self.sound_manager.play_sound('button')
         self.game_session_manager.current_level_index = selected_value
     
     def start_game(self):
         """Start the game in player mode."""
+        # Play button sound
+        self.sound_manager.play_sound('button')
         self.game_session_manager.start_game(ai_mode=False)
     
     def start_ai_game(self):
         """Start the game in AI mode."""
+        # Play button sound
+        self.sound_manager.play_sound('button')
         # Make sure we're using the correct current level index
         level_index = self.game_session_manager.current_level_index
         self.game_session_manager.start_game(ai_mode=True)
     
     def load_custom_level_dialog(self):
         """Show dialog to load a custom level"""
+        # Play button sound
+        self.sound_manager.play_sound('button')
+        
         def on_level_load_complete(success, level_info=None):
+            # Play sound based on success - but only if sound not already played by level_loader
+            if success:
+                self.sound_manager.play_sound('win')
+            else:
+                # Error sound should have been played by level_loader
+                pass
+                
             self.game_session_manager.showing_dialog = False
             
             if success and level_info:
