@@ -199,7 +199,7 @@ class LevelLoader:
         """
         if self.sound_manager and not message.startswith("Loading"):
             if success:
-                # Success sound for successful operations - don't play here to avoid duplicates
+                self.sound_manager.play_sound('win')
                 pass
             else:
                 # Error sound for errors

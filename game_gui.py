@@ -501,13 +501,7 @@ class GameGUI:
         # Play button sound
         self.sound_manager.play_sound('button')
         
-        def on_level_load_complete(success, level_info=None):
-            # Play sound based on success - but only if sound not already played by level_loader
-            if success:
-                self.sound_manager.play_sound('win')
-            else:
-                pass
-                
+        def on_level_load_complete(success, level_info=None):               
             self.game_session_manager.showing_dialog = False
             
             if success and level_info:
